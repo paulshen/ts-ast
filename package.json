@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/core": "^10.0.28",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -38,6 +39,9 @@
     ]
   },
   "devDependencies": {
+    "@emotion/babel-preset-css-prop": "^10.0.27",
+    "babel-plugin-emotion": "^10.0.33",
+    "customize-cra": "^0.9.1",
     "monaco-editor-webpack-plugin": "^1.9.0",
     "react-app-rewired": "^2.1.6"
   }

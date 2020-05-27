@@ -1,10 +1,16 @@
 import React from "react";
+import { css } from "@emotion/core";
 import MonacoEditor from "react-monaco-editor";
 
 function App() {
   const [code, setCode] = React.useState("");
   return (
-    <div style={{ height: "100vh", width: "80vw" }}>
+    <div
+      css={css`
+        width: 50vw;
+        height: 100vh;
+      `}
+    >
       <MonacoEditor
         language="typescript"
         theme="vs-dark"

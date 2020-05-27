@@ -1,10 +1,17 @@
+const {
+  override,
+  addBabelPlugin,
+  addBabelPreset,
+  addWebpackPlugin,
+} = require("customize-cra");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
-module.exports = function override(config, env) {
-  config.plugins.push(
+module.exports = override(
+  addWebpackPlugin(
     new MonacoWebpackPlugin({
       languages: ["typescript"],
     })
-  );
-  return config;
-};
+  ),
+  addBabelPlugin(require("babel-plugin-emotion")),
+  addBabelPreset(require("@emotion/babel-preset-css-prop"))
+);
