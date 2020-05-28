@@ -24,6 +24,7 @@ function Editor({
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
           target: monaco.languages.typescript.ScriptTarget.ESNext,
           allowNonTsExtensions: true,
+          jsx: monaco.languages.typescript.JsxEmit.Preserve,
         });
       }}
       editorDidMount={(editor) => {
@@ -46,13 +47,14 @@ const SourceFile = React.memo(
 
 function Output({ code }: { code: string }) {
   const sourceFile = React.useMemo(
-    () => ts.createSourceFile("index.ts", code, ts.ScriptTarget.Latest),
+    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest),
     [code]
   );
   return (
     <div
       css={css`
         font-family: SF Mono;
+        font-size: 14px;
         white-space: pre;
       `}
     >
