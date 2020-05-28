@@ -2,18 +2,36 @@ import * as React from "react";
 import * as ts from "typescript";
 import { css } from "@emotion/core";
 
-function VariableDeclarationNode({ node }: { node: ts.VariableDeclaration }) {
+function VariableDeclarationListNode({
+  node,
+}: {
+  node: ts.VariableDeclarationList;
+}) {
   return (
     <div>
       <div>
-        {`<Variable>`} {(node.name as ts.Identifier).text}
+        {`<Variable>`}
+        {(node.flags & ts.NodeFlags.Const) !== 0 ? " Const" : null}
+        {(node.flags & ts.NodeFlags.Let) !== 0 ? " Let" : null}
       </div>
-      {node.initializer ? (
-        <div>
-          <div>Initializer</div>
-          <TreeNode node={node.initializer} />
-        </div>
-      ) : null}
+      <div
+        css={css`
+          padding-left: 16px;
+        `}
+      >
+        {node.declarations.map((declaration, i) => (
+          <VariableDeclarationNode node={declaration} key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VariableDeclarationNode({ node }: { node: ts.VariableDeclaration }) {
+  return (
+    <div>
+      {(node.name as ts.Identifier).text}
+      {node.initializer ? <TreeNode node={node.initializer} /> : null}
     </div>
   );
 }
@@ -64,6 +82,9 @@ function ClassDeclarationNode({ node }: { node: ts.ClassDeclaration }) {
 }
 
 export function TreeNode({ node }: { node: ts.Node }) {
+  if (ts.isVariableDeclarationList(node)) {
+    return <VariableDeclarationListNode node={node} />;
+  }
   if (ts.isVariableDeclaration(node)) {
     return <VariableDeclarationNode node={node} />;
   }
