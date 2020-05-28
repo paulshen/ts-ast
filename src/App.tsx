@@ -2,6 +2,7 @@ import React from "react";
 import { css } from "@emotion/core";
 import MonacoEditor from "react-monaco-editor";
 import * as ts from "typescript";
+import { TreeNode } from "./Tree";
 
 function Editor({
   code,
@@ -37,6 +38,7 @@ const SourceFile = React.memo(
     return (
       <div>
         <div>{sourceFile.fileName}</div>
+        <TreeNode node={sourceFile} />
       </div>
     );
   }
