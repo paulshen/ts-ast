@@ -8,12 +8,13 @@ import { TreeNode } from "./Tree";
 
 function Editor({
   code,
+  editorRef,
   onChange,
 }: {
   code: string;
+  editorRef: { current: monacoEditor.editor.IStandaloneCodeEditor | undefined };
   onChange: (code: string) => void;
 }) {
-  const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
   React.useEffect(() => {
     const onResize = () => {
       editorRef.current?.layout();
@@ -70,16 +71,35 @@ const SourceFile = React.memo(
   }
 );
 
-function Output({ code }: { code: string }) {
-  const sourceFile = React.useMemo(
-    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest),
-    [code]
-  );
+function Output({
+  sourceFile,
+  editorRef,
+}: {
+  sourceFile: ts.SourceFile;
+  editorRef: React.RefObject<
+    monacoEditor.editor.IStandaloneCodeEditor | undefined
+  >;
+}) {
   const [selectedNode, setSelectedNode] = React.useState<ts.Node>();
   const onNodeSelect = (node: ts.Node) => {
     // @ts-ignore
     window.$node = node;
     setSelectedNode(node);
+    if (editorRef.current !== undefined) {
+      const start = ts.getLineAndCharacterOfPosition(
+        sourceFile,
+        node.getStart(sourceFile)
+      );
+      const end = ts.getLineAndCharacterOfPosition(sourceFile, node.end);
+      editorRef.current?.setSelection(
+        new monacoEditor.Selection(
+          start.line + 1,
+          start.character + 1,
+          end.line + 1,
+          end.character + 1
+        )
+      );
+    }
   };
   return (
     <div
@@ -113,6 +133,11 @@ function Output({ code }: { code: string }) {
 
 function App() {
   const [code, setCode] = React.useState("");
+  const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
+  const sourceFile = React.useMemo(
+    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest),
+    [code]
+  );
   return (
     <div
       css={css`
@@ -126,14 +151,14 @@ function App() {
           width: 50vw;
         `}
       >
-        <Editor code={code} onChange={setCode} />
+        <Editor code={code} editorRef={editorRef} onChange={setCode} />
       </div>
       <div
         css={css`
           width: 50vw;
         `}
       >
-        <Output code={code} />
+        <Output sourceFile={sourceFile} editorRef={editorRef} />
       </div>
     </div>
   );

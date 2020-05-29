@@ -42,7 +42,9 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
   for (let key in node) {
     // @ts-ignore
     const value = node[key];
-    if (typeof value === "function") {
+    if (key === "pos" || key === "end") {
+      continue;
+    } else if (typeof value === "function") {
       continue;
     } else if (Array.isArray(value)) {
       children.push(
