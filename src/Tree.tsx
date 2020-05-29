@@ -45,9 +45,18 @@ export function TreeNode({
     i++;
   });
   const nodeNameText = getNodeName(node);
+  const isSelected = node === selectedNode;
+  const anchorRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (isSelected) {
+      // @ts-ignore
+      anchorRef.current?.scrollIntoViewIfNeeded();
+    }
+  }, [isSelected]);
   return (
     <div css={Styles.treeNode}>
-      {node === selectedNode ? <Pointer>→</Pointer> : null}
+      <div ref={anchorRef} />
+      {isSelected ? <Pointer>→</Pointer> : null}
       <NodeButton onClick={() => onNodeSelect(node)}>
         {ts.SyntaxKind[node.kind]}
       </NodeButton>
