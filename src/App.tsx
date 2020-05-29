@@ -91,14 +91,14 @@ function Output({
         node.getStart(sourceFile)
       );
       const end = ts.getLineAndCharacterOfPosition(sourceFile, node.end);
-      editorRef.current?.setSelection(
-        new monacoEditor.Selection(
-          start.line + 1,
-          start.character + 1,
-          end.line + 1,
-          end.character + 1
-        )
+      const selection = new monacoEditor.Selection(
+        start.line + 1,
+        start.character + 1,
+        end.line + 1,
+        end.character + 1
       );
+      editorRef.current?.setSelection(selection);
+      editorRef.current?.revealRangeInCenterIfOutsideViewport(selection);
     }
   };
   React.useEffect(() => {
