@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as ts from "typescript";
 import { css } from "@emotion/core";
+import NodeButton from "./ui/NodeButton";
 
 function VariableDeclaration({ node }: { node: ts.VariableDeclaration }) {
   const nodeName = node.name;
@@ -46,7 +47,13 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
     } else if (Array.isArray(value)) {
       children.push(
         <React.Fragment key={key}>
-          <div>{key}</div>
+          <div
+            css={css`
+              color: #808080;
+            `}
+          >
+            {key}
+          </div>
           <div
             css={css`
               padding-left: 16px;
@@ -54,8 +61,10 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
           >
             {value.map((childValue, i) => {
               return (
-                <div key={i} onClick={() => onNodeSelect(childValue)}>
-                  {ts.SyntaxKind[childValue.kind]}
+                <div key={i}>
+                  <NodeButton onClick={() => onNodeSelect(childValue)}>
+                    {ts.SyntaxKind[childValue.kind]}
+                  </NodeButton>
                 </div>
               );
             })}
@@ -65,21 +74,30 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
     } else if (typeof value === "object") {
       children.push(
         <div key={key}>
-          <div>{key}</div>
           <div
             css={css`
-              padding-left: 16px;
+              color: #808080;
             `}
-            onClick={() => onNodeSelect(value)}
           >
-            {ts.SyntaxKind[value.kind]}
+            {key}{" "}
+            <NodeButton onClick={() => onNodeSelect(value)}>
+              {ts.SyntaxKind[value.kind]}
+            </NodeButton>
           </div>
         </div>
       );
     } else {
       children.push(
         <div key={key}>
-          {key}: {stringify(value)}
+          <span
+            css={css`
+              color: #808080;
+            `}
+          >
+            {key}
+            {": "}
+          </span>
+          {stringify(value)}
         </div>
       );
     }
