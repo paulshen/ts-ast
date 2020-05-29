@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
 import NodeButton from "./ui/NodeButton";
-import { getNodeName } from "./Utils";
+import { getNodeName, isLandmarkNode } from "./Utils";
 
 const Styles = {
   treeNode: css`
@@ -54,11 +54,18 @@ export function TreeNode({
       anchorRef.current?.scrollIntoViewIfNeeded();
     }
   }, [isSelected]);
+  const isLandmarkNodeValue = isLandmarkNode(node);
   return (
     <div css={Styles.treeNode}>
       {isSelected ? <Pointer>→</Pointer> : null}
       <div ref={anchorRef}>
-        <NodeButton onClick={() => onNodeSelect(node)}>
+        <NodeButton
+          onClick={() => onNodeSelect(node)}
+          css={css`
+            color: ${isLandmarkNodeValue ? "var(--dark)" : "var(--gray)"};
+            font-weight: ${isLandmarkNodeValue ? 600 : 400};
+          `}
+        >
           {ts.SyntaxKind[node.kind]}
         </NodeButton>
         {nodeNameText !== undefined ? (
@@ -72,6 +79,7 @@ export function TreeNode({
             css={css`
               background-color: transparent;
               border: 0;
+              color: #e0e0e0;
               font-family: SF Mono;
               font-size: 14px;
               padding: 0 4px;

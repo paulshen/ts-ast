@@ -15,3 +15,13 @@ export function getNodeName(node: ts.Node): string | undefined {
   }
   return undefined;
 }
+
+export function isLandmarkNode(node: ts.Node): boolean {
+  return (
+    ts.isVariableDeclaration(node) ||
+    ts.isFunctionDeclaration(node) ||
+    ts.isClassDeclaration(node) ||
+    ts.isPropertyDeclaration(node) ||
+    ts.isMethodDeclaration(node)
+  );
+}
