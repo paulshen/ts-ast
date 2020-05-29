@@ -118,7 +118,7 @@ function Output({
       <div
         css={css`
           font-family: SF Mono;
-          font-size: 14px;
+          font-size: var(--font-size-default);
           white-space: pre;
           height: ${selectedNode !== undefined ? 50 : 100}%;
           padding: 16px;

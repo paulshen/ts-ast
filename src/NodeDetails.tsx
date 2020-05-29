@@ -29,7 +29,7 @@ function NodeBreadcrumbs({
   return (
     <div
       css={css`
-        margin-bottom: 16px;
+        margin-bottom: var(--line-height);
       `}
     >
       {children}
@@ -73,6 +73,7 @@ function PropertyTable({ data }: { data: Array<[string, React.ReactNode]> }) {
     <div
       css={css`
         display: flex;
+        margin-bottom: var(--line-height);
       `}
     >
       {data.map(([key, value]) => (
@@ -101,6 +102,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
     return <VariableDeclaration node={node} />;
   }
   const children = [];
+  const childNodes = [];
   for (let key in node) {
     // @ts-ignore
     const value = node[key];
@@ -117,7 +119,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
     } else if (typeof value === "function") {
       continue;
     } else if (Array.isArray(value)) {
-      children.push(
+      childNodes.push(
         <React.Fragment key={key}>
           <div
             css={css`
@@ -144,7 +146,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
         </React.Fragment>
       );
     } else if (typeof value === "object") {
-      children.push(
+      childNodes.push(
         <div key={key}>
           <div
             css={css`
@@ -201,6 +203,15 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
         ].filter((x) => x !== undefined)}
       />
       {children}
+      {childNodes.length > 0 ? (
+        <div
+          css={css`
+            margin-top: var(--line-height);
+          `}
+        >
+          {childNodes}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -217,7 +228,7 @@ export default function NodeDetails({
       css={css`
         border-top: 1px solid #f0f0f0;
         font-family: SF Mono;
-        font-size: 14px;
+        font-size: var(--font-size-default);
         padding: 16px;
         box-sizing: border-box;
         flex-basis: 50%;
