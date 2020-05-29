@@ -101,6 +101,12 @@ function Output({
       );
     }
   };
+  React.useEffect(() => {
+    if (selectedNode !== undefined) {
+      setSelectedNode(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceFile]);
   return (
     <div
       css={css`
@@ -134,12 +140,17 @@ function Output({
 }
 
 function App() {
-  const [code, setCode] = React.useState("");
+  const [code, setCode] = React.useState(
+    () => localStorage.getItem("code") ?? ""
+  );
   const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
   const sourceFile = React.useMemo(
-    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest),
+    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest, true),
     [code]
   );
+  React.useEffect(() => {
+    localStorage.setItem("code", code);
+  }, [code]);
   return (
     <div
       css={css`

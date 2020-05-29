@@ -3,6 +3,40 @@ import * as ts from "typescript";
 import { css } from "@emotion/core";
 import NodeButton from "./ui/NodeButton";
 
+function NodeBreadcrumbs({
+  node,
+  onNodeSelect,
+}: {
+  node: ts.Node;
+  onNodeSelect: (node: ts.Node) => void;
+}) {
+  const children = [];
+  let iter = node;
+  let i = 0;
+  while (iter !== undefined) {
+    const current = iter;
+    children.unshift(
+      <NodeButton onClick={() => onNodeSelect(current)} key={i}>
+        {ts.SyntaxKind[current.kind]}
+      </NodeButton>
+    );
+    if (current.kind !== ts.SyntaxKind.SourceFile) {
+      children.unshift(<span key={`${i}-`}>{" > "}</span>);
+    }
+    iter = iter.parent;
+    i++;
+  }
+  return (
+    <div
+      css={css`
+        margin-bottom: 16px;
+      `}
+    >
+      {children}
+    </div>
+  );
+}
+
 function VariableDeclaration({ node }: { node: ts.VariableDeclaration }) {
   const nodeName = node.name;
   if (ts.isIdentifier(nodeName)) {
@@ -74,6 +108,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       key === "kind" ||
       key === "pos" ||
       key === "end" ||
+      key === "parent" ||
       key === "flags" ||
       key === "modifierFlagsCache" ||
       key === "transformFlags"
@@ -189,6 +224,7 @@ export default function NodeDetails({
         overflow-y: auto;
       `}
     >
+      <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
       <div>{ts.SyntaxKind[node.kind]}</div>
       {renderBody(node, onNodeSelect)}
     </div>
