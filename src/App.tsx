@@ -1,8 +1,9 @@
-import React from "react";
 import { css } from "@emotion/core";
-import MonacoEditor from "react-monaco-editor";
 import * as monacoEditor from "monaco-editor/esm/vs/editor/editor.api";
+import React from "react";
+import MonacoEditor from "react-monaco-editor";
 import * as ts from "typescript";
+import NodeDetails from "./NodeDetails";
 import { TreeNode } from "./Tree";
 
 function Editor({
@@ -47,11 +48,23 @@ function Editor({
 }
 
 const SourceFile = React.memo(
-  ({ sourceFile }: { sourceFile: ts.SourceFile }) => {
+  ({
+    sourceFile,
+    selectedNode,
+    onNodeSelect,
+  }: {
+    sourceFile: ts.SourceFile;
+    selectedNode: ts.Node | undefined;
+    onNodeSelect: (node: ts.Node) => void;
+  }) => {
     return (
       <div>
         <div>{sourceFile.fileName}</div>
-        <TreeNode node={sourceFile} />
+        <TreeNode
+          node={sourceFile}
+          selectedNode={selectedNode}
+          onNodeSelect={onNodeSelect}
+        />
       </div>
     );
   }
@@ -62,15 +75,38 @@ function Output({ code }: { code: string }) {
     () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest),
     [code]
   );
+  const [selectedNode, setSelectedNode] = React.useState<ts.Node>();
+  const onNodeSelect = (node: ts.Node) => {
+    // @ts-ignore
+    window.$node = node;
+    setSelectedNode(node);
+  };
   return (
     <div
       css={css`
-        font-family: SF Mono;
-        font-size: 14px;
-        white-space: pre;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
       `}
     >
-      <SourceFile sourceFile={sourceFile} />
+      <div
+        css={css`
+          font-family: SF Mono;
+          font-size: 14px;
+          white-space: pre;
+          height: ${selectedNode !== undefined ? 50 : 100}%;
+          overflow-y: auto;
+        `}
+      >
+        <SourceFile
+          sourceFile={sourceFile}
+          selectedNode={selectedNode}
+          onNodeSelect={onNodeSelect}
+        />
+      </div>
+      {selectedNode !== undefined ? (
+        <NodeDetails node={selectedNode} onNodeSelect={onNodeSelect} />
+      ) : null}
     </div>
   );
 }
@@ -81,12 +117,13 @@ function App() {
     <div
       css={css`
         display: flex;
+        height: 100vh;
+        overflow: hidden;
       `}
     >
       <div
         css={css`
           width: 50vw;
-          height: 100vh;
         `}
       >
         <Editor code={code} onChange={setCode} />
