@@ -1,7 +1,8 @@
+import { css } from "@emotion/core";
 import * as React from "react";
 import * as ts from "typescript";
-import { css } from "@emotion/core";
 import NodeButton from "./ui/NodeButton";
+import { getNodeName } from "./Utils";
 
 function NodeBreadcrumbs({
   node,
@@ -223,6 +224,7 @@ export default function NodeDetails({
   node: ts.Node;
   onNodeSelect: (node: ts.Node) => void;
 }) {
+  const nodeNameText = getNodeName(node);
   return (
     <div
       css={css`
@@ -236,7 +238,24 @@ export default function NodeDetails({
       `}
     >
       <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
-      <div>{ts.SyntaxKind[node.kind]}</div>
+      <div
+        css={css`
+          margin-bottom: var(--line-height);
+        `}
+      >
+        {ts.SyntaxKind[node.kind]}
+        {nodeNameText !== undefined ? (
+          <span
+            css={css`
+              background-color: #f0f0f0;
+              color: #000000;
+              margin-left: 8px;
+            `}
+          >
+            {nodeNameText}
+          </span>
+        ) : null}
+      </div>
       {renderBody(node, onNodeSelect)}
     </div>
   );

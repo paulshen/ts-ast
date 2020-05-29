@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
 import NodeButton from "./ui/NodeButton";
+import { getNodeName } from "./Utils";
 
 const Styles = {
   treeNode: css`
@@ -43,16 +44,16 @@ export function TreeNode({
     );
     i++;
   });
-  const nodeNameText: string | undefined = (node as any).name?.text;
+  const nodeNameText = getNodeName(node);
   return (
     <div css={Styles.treeNode}>
       {node === selectedNode ? <Pointer>→</Pointer> : null}
       <NodeButton onClick={() => onNodeSelect(node)}>
         {ts.SyntaxKind[node.kind]}
-        {nodeNameText !== undefined ? (
-          <span css={Styles.nodeName}>{nodeNameText}</span>
-        ) : null}
       </NodeButton>
+      {nodeNameText !== undefined ? (
+        <span css={Styles.nodeName}>{nodeNameText}</span>
+      ) : null}
       {children.length > 0 ? (
         <div
           css={css`
