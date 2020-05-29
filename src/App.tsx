@@ -1,6 +1,7 @@
 import React from "react";
 import { css } from "@emotion/core";
 import MonacoEditor from "react-monaco-editor";
+import * as monacoEditor from "monaco-editor/esm/vs/editor/editor.api";
 import * as ts from "typescript";
 import { TreeNode } from "./Tree";
 
@@ -11,6 +12,16 @@ function Editor({
   code: string;
   onChange: (code: string) => void;
 }) {
+  const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
+  React.useEffect(() => {
+    const onResize = () => {
+      editorRef.current?.layout();
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  });
   return (
     <MonacoEditor
       language="typescript"
@@ -29,6 +40,7 @@ function Editor({
       }}
       editorDidMount={(editor) => {
         editor.focus();
+        editorRef.current = editor;
       }}
     />
   );
