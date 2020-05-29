@@ -12,6 +12,8 @@ ReactDOM.render(
         :root {
           --font-size-default: 14px;
           --line-height: 16px;
+          --dark: #202020;
+          --gray: #808080;
         }
       `}
     />

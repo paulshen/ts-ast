@@ -4,9 +4,11 @@ import * as React from "react";
 export default function NodeButton({
   children,
   onClick,
+  className,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  className?: string;
 }) {
   return (
     <button
@@ -24,6 +26,7 @@ export default function NodeButton({
           text-decoration: underline;
         }
       `}
+      className={className}
     >
       {children}
     </button>

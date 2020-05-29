@@ -3,6 +3,7 @@ import * as React from "react";
 import * as ts from "typescript";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName } from "./Utils";
+import styled from "@emotion/styled";
 
 function NodeBreadcrumbs({
   node,
@@ -36,14 +37,6 @@ function NodeBreadcrumbs({
       {children}
     </div>
   );
-}
-
-function VariableDeclaration({ node }: { node: ts.VariableDeclaration }) {
-  const nodeName = node.name;
-  if (ts.isIdentifier(nodeName)) {
-    return <div>{nodeName.text}</div>;
-  }
-  return <div>{node.name}</div>;
 }
 
 function stringify(value: any) {
@@ -98,10 +91,97 @@ function PropertyTable({ data }: { data: Array<[string, React.ReactNode]> }) {
   );
 }
 
+const ChildRow = styled.div`
+  display: flex;
+  align-items: center;
+`;
+const ChildProperty = styled.div`
+  color: #808080;
+  display: flex;
+  align-items: center;
+  min-width: 128px;
+`;
+const ChildNodeName = css`
+  padding: 3px 6px;
+  margin: 2px 0;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+`;
+const ChildLine = styled.div`
+  background-color: #e0e0e0;
+  height: 1px;
+  flex-grow: 1;
+  min-width: 8px;
+  margin-left: 4px;
+`;
+function ChildPropertyLine({ index }: { index: number }) {
+  return (
+    <div
+      css={css`
+        display: flex;
+        align-items: center;
+        position: relative;
+        align-self: stretch;
+        margin-right: 4px;
+      `}
+    >
+      <div
+        css={css`
+          background-color: #e0e0e0;
+          height: 1px;
+          width: 16px;
+        `}
+      />
+      {index !== 0 ? (
+        <div
+          css={css`
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background-color: #e0e0e0;
+            left: 0;
+            top: -13px;
+          `}
+        />
+      ) : null}
+    </div>
+  );
+}
+function ChildValueLine({ index }: { index: number }) {
+  return (
+    <div
+      css={css`
+        display: flex;
+        align-items: center;
+        position: relative;
+        align-self: stretch;
+        margin-right: 4px;
+      `}
+    >
+      <div
+        css={css`
+          background-color: #e0e0e0;
+          height: 1px;
+          width: 16px;
+        `}
+      />
+      {index !== 0 ? (
+        <div
+          css={css`
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background-color: #e0e0e0;
+            left: 0;
+            top: -13px;
+          `}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
-  if (ts.isVariableDeclaration(node)) {
-    return <VariableDeclaration node={node} />;
-  }
   const children = [];
   const childNodes = [];
   for (let key in node) {
@@ -121,45 +201,63 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       continue;
     } else if (Array.isArray(value)) {
       childNodes.push(
-        <React.Fragment key={key}>
-          <div
-            css={css`
-              color: #808080;
-            `}
-          >
+        <ChildRow key={key}>
+          <ChildPropertyLine index={childNodes.length} />
+          <ChildProperty>
             {key}
-          </div>
-          <div
-            css={css`
-              padding-left: 16px;
-            `}
-          >
+            <ChildLine />
+          </ChildProperty>
+          <div>
             {value.map((childValue, i) => {
               return (
-                <div key={i}>
-                  <NodeButton onClick={() => onNodeSelect(childValue)}>
+                <div
+                  css={css`
+                    display: flex;
+                  `}
+                  key={i}
+                >
+                  <ChildValueLine index={i} />
+                  <NodeButton
+                    onClick={() => onNodeSelect(childValue)}
+                    css={ChildNodeName}
+                  >
                     {ts.SyntaxKind[childValue.kind]}
                   </NodeButton>
                 </div>
               );
             })}
+            {value.length === 0 ? (
+              <div
+                css={css`
+                  display: flex;
+                `}
+              >
+                <ChildValueLine index={0} />
+                []
+              </div>
+            ) : null}
           </div>
-        </React.Fragment>
+        </ChildRow>
       );
     } else if (typeof value === "object") {
       childNodes.push(
-        <div key={key}>
+        <ChildRow key={key}>
+          <ChildPropertyLine index={childNodes.length} />
+          <ChildProperty>
+            {key}
+            <ChildLine />
+          </ChildProperty>
           <div
             css={css`
-              color: #808080;
+              display: flex;
             `}
           >
-            {key}{" "}
-            <NodeButton onClick={() => onNodeSelect(value)}>
+            <ChildValueLine index={0} />
+            <NodeButton onClick={() => onNodeSelect(value)} css={ChildNodeName}>
               {ts.SyntaxKind[value.kind]}
             </NodeButton>
           </div>
-        </div>
+        </ChildRow>
       );
     } else {
       children.push(
@@ -208,9 +306,21 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
         <div
           css={css`
             margin-top: var(--line-height);
+            display: flex;
           `}
         >
-          {childNodes}
+          <ChildProperty>
+            <div
+              css={css`
+                ${ChildNodeName}
+                color: var(--dark);
+              `}
+            >
+              {ts.SyntaxKind[node.kind]}
+            </div>
+            <ChildLine />
+          </ChildProperty>
+          <div>{childNodes}</div>
         </div>
       ) : null}
     </div>
@@ -228,7 +338,7 @@ export default function NodeDetails({
   return (
     <div
       css={css`
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid #e0e0e0;
         font-family: SF Mono;
         font-size: var(--font-size-default);
         padding: 16px;
@@ -240,6 +350,8 @@ export default function NodeDetails({
       <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
       <div
         css={css`
+          font-size: 24px;
+          font-weight: 600;
           margin-bottom: var(--line-height);
         `}
       >
@@ -247,8 +359,8 @@ export default function NodeDetails({
         {nodeNameText !== undefined ? (
           <span
             css={css`
-              background-color: #f0f0f0;
-              color: #000000;
+              background-color: #e0e0e0;
+              color: var(--dark);
               margin-left: 8px;
             `}
           >
