@@ -25,3 +25,22 @@ export function isLandmarkNode(node: ts.Node): boolean {
     ts.isMethodDeclaration(node)
   );
 }
+
+export function getNodeForPosition(
+  node: ts.Node,
+  position: number
+): ts.Node | undefined {
+  if (position < node.pos || position > node.end) {
+    return;
+  }
+  const children: Array<ts.Node> = [];
+  node.forEachChild((child) => {
+    children.push(child);
+  });
+  for (const child of children) {
+    if (child.pos <= position && child.end >= position) {
+      return getNodeForPosition(child, position);
+    }
+  }
+  return node;
+}

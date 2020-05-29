@@ -5,6 +5,7 @@ import MonacoEditor from "react-monaco-editor";
 import * as ts from "typescript";
 import NodeDetails from "./NodeDetails";
 import { TreeNode } from "./Tree";
+import { getNodeForPosition } from "./Utils";
 
 function Editor({
   code,
@@ -101,12 +102,32 @@ function Output({
       editorRef.current?.revealRangeInCenterIfOutsideViewport(selection);
     }
   };
+  const sourceFileRef = React.useRef(sourceFile);
   React.useEffect(() => {
+    sourceFileRef.current = sourceFile;
     if (selectedNode !== undefined) {
       setSelectedNode(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceFile]);
+  React.useEffect(() => {
+    const editor = editorRef.current;
+    if (editor != null) {
+      const d = editor.onDidChangeCursorPosition((e) => {
+        const editorModel = editor.getModel();
+        if (editorModel === null) {
+          return;
+        }
+        const position = editorModel.getOffsetAt(e.position);
+        const node = getNodeForPosition(sourceFileRef.current, position);
+        if (node !== undefined) {
+          setSelectedNode(node);
+        }
+      });
+      return () => d.dispose();
+    }
+  });
+
   return (
     <div
       css={css`
