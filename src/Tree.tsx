@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as ts from "typescript";
 import { css } from "@emotion/core";
+import styled from "@emotion/styled";
 
 const Styles = {
   treeNode: css`
@@ -13,6 +14,11 @@ const Styles = {
     margin-left: 8px;
   `,
 };
+const Pointer = styled.div`
+  position: absolute;
+  right: 100%;
+  top: 0;
+`;
 
 export function TreeNode({
   node,
@@ -40,17 +46,7 @@ export function TreeNode({
   return (
     <div css={Styles.treeNode}>
       <div onClick={() => onNodeSelect(node)}>
-        {node === selectedNode ? (
-          <div
-            css={css`
-              position: absolute;
-              right: 100%;
-              top: 0;
-            `}
-          >
-            →
-          </div>
-        ) : null}
+        {node === selectedNode ? <Pointer>→</Pointer> : null}
         {ts.SyntaxKind[node.kind]}
         {nodeNameText !== undefined ? (
           <span css={Styles.nodeName}>{nodeNameText}</span>
