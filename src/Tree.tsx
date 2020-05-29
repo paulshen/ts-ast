@@ -31,6 +31,7 @@ export function TreeNode({
   selectedNode: ts.Node | undefined;
   onNodeSelect: (node: ts.Node) => void;
 }) {
+  const [expanded, setExpanded] = React.useState(true);
   const children: Array<React.ReactNode> = [];
   let i = 0;
   node.forEachChild((childNode) => {
@@ -55,15 +56,32 @@ export function TreeNode({
   }, [isSelected]);
   return (
     <div css={Styles.treeNode}>
-      <div ref={anchorRef} />
       {isSelected ? <Pointer>→</Pointer> : null}
-      <NodeButton onClick={() => onNodeSelect(node)}>
-        {ts.SyntaxKind[node.kind]}
-      </NodeButton>
-      {nodeNameText !== undefined ? (
-        <span css={Styles.nodeName}>{nodeNameText}</span>
-      ) : null}
-      {children.length > 0 ? (
+      <div ref={anchorRef}>
+        <NodeButton onClick={() => onNodeSelect(node)}>
+          {ts.SyntaxKind[node.kind]}
+        </NodeButton>
+        {nodeNameText !== undefined ? (
+          <span css={Styles.nodeName}>{nodeNameText}</span>
+        ) : null}
+        {children.length > 0 ? (
+          <button
+            onClick={() => {
+              setExpanded((expanded) => !expanded);
+            }}
+            css={css`
+              background-color: transparent;
+              border: 0;
+              font-family: SF Mono;
+              font-size: 14px;
+              padding: 0 4px;
+            `}
+          >
+            {expanded ? "-" : "+"}
+          </button>
+        ) : null}
+      </div>
+      {expanded && children.length > 0 ? (
         <div
           css={css`
             padding-left: 16px;
