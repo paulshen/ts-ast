@@ -34,6 +34,34 @@ function stringify(value: any) {
   }
 }
 
+function PropertyTable({ data }: { data: Array<[string, React.ReactNode]> }) {
+  return (
+    <div
+      css={css`
+        display: flex;
+      `}
+    >
+      {data.map(([key, value]) => (
+        <div
+          css={css`
+            padding-right: 8px;
+          `}
+          key={key}
+        >
+          <div
+            css={css`
+              font-weight: 600;
+            `}
+          >
+            {key}
+          </div>
+          <div>{value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
   if (ts.isVariableDeclaration(node)) {
     return <VariableDeclaration node={node} />;
@@ -42,7 +70,14 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
   for (let key in node) {
     // @ts-ignore
     const value = node[key];
-    if (key === "pos" || key === "end") {
+    if (
+      key === "kind" ||
+      key === "pos" ||
+      key === "end" ||
+      key === "flags" ||
+      key === "modifierFlagsCache" ||
+      key === "transformFlags"
+    ) {
       continue;
     } else if (typeof value === "function") {
       continue;
@@ -104,7 +139,35 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       );
     }
   }
-  return <div>{children}</div>;
+  return (
+    <div>
+      <PropertyTable
+        data={[
+          ["Kind", node.kind],
+          ["Position", `${node.pos}-${node.end}`],
+        ]}
+      />
+      <PropertyTable
+        // @ts-ignore
+        data={[
+          ["Flags", node.flags],
+          (node as any).modifierFlagsCache !== undefined
+            ? (["Modifier Cache", (node as any).modifierFlagsCache] as [
+                string,
+                React.ReactNode
+              ])
+            : undefined,
+          (node as any).transformFlags !== undefined
+            ? (["Transform", (node as any).transformFlags] as [
+                string,
+                React.ReactNode
+              ])
+            : undefined,
+        ].filter((x) => x !== undefined)}
+      />
+      {children}
+    </div>
+  );
 }
 
 export default function NodeDetails({
@@ -123,6 +186,7 @@ export default function NodeDetails({
         padding: 16px;
         box-sizing: border-box;
         flex-basis: 50%;
+        overflow-y: auto;
       `}
     >
       <div>{ts.SyntaxKind[node.kind]}</div>

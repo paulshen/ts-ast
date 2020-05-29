@@ -115,6 +115,8 @@ function Output({
           font-size: 14px;
           white-space: pre;
           height: ${selectedNode !== undefined ? 50 : 100}%;
+          padding: 16px;
+          box-sizing: border-box;
           overflow-y: auto;
         `}
       >
