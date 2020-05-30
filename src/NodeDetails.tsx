@@ -1,9 +1,10 @@
 import { css } from "@emotion/core";
+import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
+import NodeType from "./NodeType";
 import NodeButton from "./ui/NodeButton";
-import { getNodeName } from "./Utils";
-import styled from "@emotion/styled";
+import { getNodeName, getTsFlags } from "./Utils";
 
 function NodeBreadcrumbs({
   node,
@@ -80,6 +81,7 @@ function PropertyTable({ data }: { data: Array<[string, React.ReactNode]> }) {
           <div
             css={css`
               font-weight: 600;
+              white-space: nowrap;
             `}
           >
             {key}
@@ -297,18 +299,46 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       <PropertyTable
         // @ts-ignore
         data={[
-          ["Flags", node.flags],
+          [
+            "Flags",
+
+            <div>
+              {getTsFlags(ts.NodeFlags, node.flags).map((flag) => (
+                // @ts-ignore
+                <div key={flag}>{ts.NodeFlags[flag]}</div>
+              ))}
+            </div>,
+          ],
           (node as any).modifierFlagsCache !== undefined
-            ? (["Modifier Cache", (node as any).modifierFlagsCache] as [
-                string,
-                React.ReactNode
-              ])
+            ? ([
+                "Modifier Cache",
+                <div>
+                  {getTsFlags(
+                    ts.ModifierFlags,
+                    (node as any).modifierFlagsCache
+                  ).map((flag) => (
+                    // @ts-ignore
+                    <div key={flag}>{ts.ModifierFlags[flag]}</div>
+                  ))}
+                </div>,
+              ] as [string, React.ReactNode])
             : undefined,
           (node as any).transformFlags !== undefined
-            ? (["Transform", (node as any).transformFlags] as [
-                string,
-                React.ReactNode
-              ])
+            ? ([
+                "Transform",
+                <div>
+                  {
+                    // @ts-ignore
+                    getTsFlags(
+                      ts.TransformFlags,
+                      (node as any).transformFlags
+                    ).map((flag) => (
+                      // @ts-ignore
+                      <div key={flag}>{ts.TransformFlags[flag]}</div>
+                    ))
+                  }
+                </div>,
+              ] as [string, React.ReactNode])
             : undefined,
         ].filter((x) => x !== undefined)}
       />
@@ -340,12 +370,18 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
 
 export default function NodeDetails({
   node,
+  typeChecker,
   onNodeSelect,
 }: {
   node: ts.Node;
+  typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
 }) {
   const nodeNameText = getNodeName(node);
+  const nodeType = React.useMemo(() => typeChecker.getTypeAtLocation(node), [
+    typeChecker,
+    node,
+  ]);
   return (
     <div
       css={css`
@@ -380,6 +416,9 @@ export default function NodeDetails({
         ) : null}
       </div>
       {renderBody(node, onNodeSelect)}
+      {nodeType !== undefined ? (
+        <NodeType typeChecker={typeChecker} node={node} nodeType={nodeType} />
+      ) : null}
     </div>
   );
 }

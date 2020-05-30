@@ -44,3 +44,15 @@ export function getNodeForPosition(
   }
   return node;
 }
+
+export function getTsFlags<F>(flagEnum: F, flags: number): Array<F> {
+  const rv: Array<F> = [];
+  Object.values(flagEnum)
+    .filter((flag) => typeof flag === "number")
+    .forEach((flag: any) => {
+      if (flag !== 0 && (flags & flag) === flag && !rv.includes(flag)) {
+        rv.push(flag);
+      }
+    });
+  return rv;
+}

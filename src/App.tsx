@@ -179,7 +179,11 @@ function Output({
         />
       </div>
       {selectedNode !== undefined ? (
-        <NodeDetails node={selectedNode} onNodeSelect={onNodeSelect} />
+        <NodeDetails
+          node={selectedNode}
+          typeChecker={typeChecker}
+          onNodeSelect={onNodeSelect}
+        />
       ) : null}
     </div>
   );

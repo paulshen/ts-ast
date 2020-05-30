@@ -4,4 +4,6 @@ declare module "typescript" {
   interface Node {
     symbol?: ts.Symbol;
   }
+
+  enum TransformFlags {}
 }
