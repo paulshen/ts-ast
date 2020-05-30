@@ -114,6 +114,9 @@ function Output({
     const editor = editorRef.current;
     if (editor != null) {
       const d = editor.onDidChangeCursorPosition((e) => {
+        if (e.source === "api") {
+          return;
+        }
         const editorModel = editor.getModel();
         if (editorModel === null) {
           return;
