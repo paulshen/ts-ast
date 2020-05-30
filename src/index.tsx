@@ -14,6 +14,7 @@ ReactDOM.render(
           --line-height: 16px;
           --dark: #202020;
           --gray: #808080;
+          --light: #c0c0c0;
         }
       `}
     />

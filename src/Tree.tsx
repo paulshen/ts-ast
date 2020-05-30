@@ -21,6 +21,20 @@ const Pointer = styled.div`
   right: 100%;
   top: 0;
 `;
+function SymbolMarker() {
+  return (
+    <div
+      css={css`
+        color: var(--light);
+        position: absolute;
+        right: 0;
+        top: 0;
+      `}
+    >
+      Symbol
+    </div>
+  );
+}
 
 export function TreeNode({
   node,
@@ -71,6 +85,7 @@ export function TreeNode({
         {nodeNameText !== undefined ? (
           <span css={Styles.nodeName}>{nodeNameText}</span>
         ) : null}
+        {node.symbol !== undefined ? <SymbolMarker /> : null}
         {children.length > 0 ? (
           <button
             onClick={() => {

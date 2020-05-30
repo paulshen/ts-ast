@@ -6,6 +6,7 @@ import * as ts from "typescript";
 import NodeDetails from "./NodeDetails";
 import { TreeNode } from "./Tree";
 import { getNodeForPosition } from "./Utils";
+import { createProgram } from "./Compiler";
 
 function Editor({
   code,
@@ -74,9 +75,11 @@ const SourceFile = React.memo(
 
 function Output({
   sourceFile,
+  typeChecker,
   editorRef,
 }: {
   sourceFile: ts.SourceFile;
+  typeChecker: ts.TypeChecker;
   editorRef: React.RefObject<
     monacoEditor.editor.IStandaloneCodeEditor | undefined
   >;
@@ -187,10 +190,11 @@ function App() {
     () => localStorage.getItem("code") ?? ""
   );
   const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
-  const sourceFile = React.useMemo(
-    () => ts.createSourceFile("index.tsx", code, ts.ScriptTarget.Latest, true),
-    [code]
-  );
+  const { sourceFile, typeChecker } = React.useMemo(() => createProgram(code), [
+    code,
+  ]);
+  // @ts-ignore
+  window.$typeChecker = typeChecker;
   React.useEffect(() => {
     localStorage.setItem("code", code);
   }, [code]);
@@ -214,7 +218,11 @@ function App() {
           width: 50vw;
         `}
       >
-        <Output sourceFile={sourceFile} editorRef={editorRef} />
+        <Output
+          sourceFile={sourceFile}
+          typeChecker={typeChecker}
+          editorRef={editorRef}
+        />
       </div>
     </div>
   );

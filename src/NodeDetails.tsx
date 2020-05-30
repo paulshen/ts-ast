@@ -194,7 +194,18 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       key === "parent" ||
       key === "flags" ||
       key === "modifierFlagsCache" ||
-      key === "transformFlags"
+      key === "transformFlags" ||
+      key === "original" ||
+      key === "symbol" ||
+      key === "locals" ||
+      key === "nextContainer" ||
+      key === "localSymbol" ||
+      key === "flowNode" ||
+      key === "emitNode" ||
+      key === "contextualType" ||
+      key === "inferenceContext" ||
+      key === "endFlowNode" ||
+      key === "returnFlowNode"
     ) {
       continue;
     } else if (typeof value === "function") {
