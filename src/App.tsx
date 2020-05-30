@@ -82,6 +82,7 @@ function Output({
   >;
 }) {
   const [selectedNode, setSelectedNode] = React.useState<ts.Node>();
+  const deltaDecorationsRef = React.useRef<Array<string>>([]);
   const onNodeSelect = (node: ts.Node) => {
     // @ts-ignore
     window.$node = node;
@@ -98,8 +99,15 @@ function Output({
         end.line + 1,
         end.character + 1
       );
-      editorRef.current?.setSelection(selection);
-      editorRef.current?.revealRangeInCenterIfOutsideViewport(selection);
+      const editor = editorRef.current;
+      if (editor) {
+        editor.setSelection(selection);
+        deltaDecorationsRef.current = editor.deltaDecorations(
+          deltaDecorationsRef.current,
+          [{ range: selection, options: { className: "selected-text" } }]
+        );
+        editor.revealRangeInCenterIfOutsideViewport(selection);
+      }
     }
   };
   const sourceFileRef = React.useRef(sourceFile);
@@ -107,6 +115,13 @@ function Output({
     sourceFileRef.current = sourceFile;
     if (selectedNode !== undefined) {
       setSelectedNode(undefined);
+      const editor = editorRef.current;
+      if (editor) {
+        deltaDecorationsRef.current = editor.deltaDecorations(
+          deltaDecorationsRef.current,
+          []
+        );
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceFile]);
@@ -125,6 +140,10 @@ function Output({
         const node = getNodeForPosition(sourceFileRef.current, position);
         if (node !== undefined) {
           setSelectedNode(node);
+          deltaDecorationsRef.current = editor.deltaDecorations(
+            deltaDecorationsRef.current,
+            []
+          );
         }
       });
       return () => d.dispose();
