@@ -2,6 +2,7 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
+import NodeSymbol from "./NodeSymbol";
 import NodeType from "./NodeType";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
@@ -19,7 +20,7 @@ function NodeBreadcrumbs({
   while (iter !== undefined) {
     const current = iter;
     children.unshift(
-      <NodeButton onClick={() => onNodeSelect(current)} key={i}>
+      <NodeButton onClick={() => onNodeSelect(current)} buttonStyle key={i}>
         {ts.SyntaxKind[current.kind]}
       </NodeButton>
     );
@@ -232,7 +233,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
                   <ChildValueLine index={i} />
                   <NodeButton
                     onClick={() => onNodeSelect(childValue)}
-                    css={ChildNodeName}
+                    buttonStyle
                   >
                     {ts.SyntaxKind[childValue.kind]}
                   </NodeButton>
@@ -266,7 +267,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
             `}
           >
             <ChildValueLine index={0} />
-            <NodeButton onClick={() => onNodeSelect(value)} css={ChildNodeName}>
+            <NodeButton onClick={() => onNodeSelect(value)} buttonStyle>
               {ts.SyntaxKind[value.kind]}
             </NodeButton>
           </div>
@@ -290,6 +291,27 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
   }
   return (
     <div>
+      {childNodes.length > 0 ? (
+        <div
+          css={css`
+            margin-top: var(--line-height);
+            display: flex;
+          `}
+        >
+          <ChildProperty>
+            <div
+              css={css`
+                ${ChildNodeName}
+                color: var(--dark);
+              `}
+            >
+              {ts.SyntaxKind[node.kind]}
+            </div>
+            <ChildLine />
+          </ChildProperty>
+          <div>{childNodes}</div>
+        </div>
+      ) : null}
       <PropertyTable
         data={[
           ["Kind", node.kind],
@@ -343,27 +365,6 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
         ].filter((x) => x !== undefined)}
       />
       {children}
-      {childNodes.length > 0 ? (
-        <div
-          css={css`
-            margin-top: var(--line-height);
-            display: flex;
-          `}
-        >
-          <ChildProperty>
-            <div
-              css={css`
-                ${ChildNodeName}
-                color: var(--dark);
-              `}
-            >
-              {ts.SyntaxKind[node.kind]}
-            </div>
-            <ChildLine />
-          </ChildProperty>
-          <div>{childNodes}</div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -382,6 +383,10 @@ export default function NodeDetails({
     typeChecker,
     node,
   ]);
+  const nodeSymbol = React.useMemo(
+    () => typeChecker.getSymbolAtLocation(node),
+    [typeChecker, node]
+  );
   return (
     <div
       css={css`
@@ -418,6 +423,14 @@ export default function NodeDetails({
       {renderBody(node, onNodeSelect)}
       {nodeType !== undefined ? (
         <NodeType typeChecker={typeChecker} node={node} nodeType={nodeType} />
+      ) : null}
+      {nodeSymbol !== undefined ? (
+        <NodeSymbol
+          typeChecker={typeChecker}
+          node={node}
+          nodeSymbol={nodeSymbol}
+          onNodeSelect={onNodeSelect}
+        />
       ) : null}
     </div>
   );
