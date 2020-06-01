@@ -15,6 +15,8 @@ ReactDOM.render(
           --dark: #202020;
           --gray: #808080;
           --light: #c0c0c0;
+          --purple: #ae6ab4;
+          --teal: #21b5c2;
         }
       `}
     />

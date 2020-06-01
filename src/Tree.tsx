@@ -4,11 +4,19 @@ import * as React from "react";
 import * as ts from "typescript";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, isLandmarkNode } from "./Utils";
+import { useSelectionStore } from "./state/SelectionStore";
 
 const Styles = {
   treeNode: css`
     color: #808080;
     position: relative;
+  `,
+  treeNodePathSelected: css`
+    border: 1px solid var(--purple);
+    margin: -1px;
+  `,
+  treeNodeSelected: css`
+    background-color: #ae6ab420;
   `,
   nodeName: css`
     background-color: #f0f0f0;
@@ -20,6 +28,7 @@ const Pointer = styled.div`
   position: absolute;
   right: 100%;
   top: 0;
+  color: var(--purple);
 `;
 function SymbolMarker() {
   return (
@@ -38,11 +47,9 @@ function SymbolMarker() {
 
 export function TreeNode({
   node,
-  selectedNode,
   onNodeSelect,
 }: {
   node: ts.Node;
-  selectedNode: ts.Node | undefined;
   onNodeSelect: (node: ts.Node) => void;
 }) {
   const [expanded, setExpanded] = React.useState(true);
@@ -50,17 +57,16 @@ export function TreeNode({
   let i = 0;
   node.forEachChild((childNode) => {
     children.push(
-      <TreeNode
-        node={childNode}
-        selectedNode={selectedNode}
-        onNodeSelect={onNodeSelect}
-        key={i}
-      />
+      <TreeNode node={childNode} onNodeSelect={onNodeSelect} key={i} />
     );
     i++;
   });
   const nodeNameText = getNodeName(node);
-  const isSelected = node === selectedNode;
+  const isSelected = useSelectionStore((state) => state.selectedNode === node);
+  const isPathSelected = useSelectionStore(
+    (state) =>
+      state.selectedPath !== undefined && state.selectedPath.includes(node)
+  );
   const anchorRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (isSelected) {
@@ -70,9 +76,17 @@ export function TreeNode({
   }, [isSelected]);
   const isLandmarkNodeValue = isLandmarkNode(node);
   return (
-    <div css={Styles.treeNode}>
+    <div
+      css={css(
+        Styles.treeNode,
+        isPathSelected ? Styles.treeNodePathSelected : undefined
+      )}
+    >
       {isSelected ? <Pointer>→</Pointer> : null}
-      <div ref={anchorRef}>
+      <div
+        css={isSelected ? Styles.treeNodeSelected : undefined}
+        ref={anchorRef}
+      >
         <NodeButton
           onClick={() => onNodeSelect(node)}
           css={css`

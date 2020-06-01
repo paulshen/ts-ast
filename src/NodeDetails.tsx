@@ -6,6 +6,7 @@ import NodeSymbol from "./NodeSymbol";
 import NodeType from "./NodeType";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
+import { useSelectionStore } from "./state/SelectionStore";
 
 function NodeBreadcrumbs({
   node,
@@ -370,14 +371,16 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
 }
 
 export default function NodeDetails({
-  node,
   typeChecker,
   onNodeSelect,
 }: {
-  node: ts.Node;
   typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
 }) {
+  const node = useSelectionStore((state) => state.selectedNode);
+  if (node === undefined) {
+    throw new Error();
+  }
   const nodeNameText = getNodeName(node);
   const nodeType = React.useMemo(() => typeChecker.getTypeAtLocation(node), [
     typeChecker,

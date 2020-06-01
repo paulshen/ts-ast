@@ -16,7 +16,8 @@
     "react-dom": "^16.13.1",
     "react-monaco-editor": "^0.36.0",
     "react-scripts": "3.4.1",
-    "typescript": "3.9.3"
+    "typescript": "3.9.3",
+    "zustand": "^2.2.3"
   },
   "scripts": {
     "start": "react-app-rewired start",

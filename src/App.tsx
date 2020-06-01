@@ -7,6 +7,7 @@ import NodeDetails from "./NodeDetails";
 import { TreeNode } from "./Tree";
 import { getNodeForPosition } from "./Utils";
 import { createProgram } from "./Compiler";
+import { useSelectionStore } from "./state/SelectionStore";
 
 function Editor({
   code,
@@ -53,21 +54,15 @@ function Editor({
 const SourceFile = React.memo(
   ({
     sourceFile,
-    selectedNode,
     onNodeSelect,
   }: {
     sourceFile: ts.SourceFile;
-    selectedNode: ts.Node | undefined;
     onNodeSelect: (node: ts.Node) => void;
   }) => {
     return (
       <div>
         <div>{sourceFile.fileName}</div>
-        <TreeNode
-          node={sourceFile}
-          selectedNode={selectedNode}
-          onNodeSelect={onNodeSelect}
-        />
+        <TreeNode node={sourceFile} onNodeSelect={onNodeSelect} />
       </div>
     );
   }
@@ -84,12 +79,15 @@ function Output({
     monacoEditor.editor.IStandaloneCodeEditor | undefined
   >;
 }) {
-  const [selectedNode, setSelectedNode] = React.useState<ts.Node>();
+  const selectNode = useSelectionStore((state) => state.setSelectedNode);
+  const hasSelectedNode = useSelectionStore(
+    (state) => state.selectedNode !== undefined
+  );
   const deltaDecorationsRef = React.useRef<Array<string>>([]);
   const onNodeSelect = (node: ts.Node) => {
     // @ts-ignore
     window.$node = node;
-    setSelectedNode(node);
+    selectNode(node);
     if (editorRef.current !== undefined) {
       const start = ts.getLineAndCharacterOfPosition(
         sourceFile,
@@ -116,15 +114,13 @@ function Output({
   const sourceFileRef = React.useRef(sourceFile);
   React.useEffect(() => {
     sourceFileRef.current = sourceFile;
-    if (selectedNode !== undefined) {
-      setSelectedNode(undefined);
-      const editor = editorRef.current;
-      if (editor) {
-        deltaDecorationsRef.current = editor.deltaDecorations(
-          deltaDecorationsRef.current,
-          []
-        );
-      }
+    selectNode(undefined);
+    const editor = editorRef.current;
+    if (editor) {
+      deltaDecorationsRef.current = editor.deltaDecorations(
+        deltaDecorationsRef.current,
+        []
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceFile]);
@@ -142,7 +138,7 @@ function Output({
         const position = editorModel.getOffsetAt(e.position);
         const node = getNodeForPosition(sourceFileRef.current, position);
         if (node !== undefined) {
-          setSelectedNode(node);
+          selectNode(node);
           deltaDecorationsRef.current = editor.deltaDecorations(
             deltaDecorationsRef.current,
             []
@@ -166,24 +162,16 @@ function Output({
           font-family: SF Mono;
           font-size: var(--font-size-default);
           white-space: pre;
-          height: ${selectedNode !== undefined ? 50 : 100}%;
+          height: ${hasSelectedNode ? 50 : 100}%;
           padding: 16px;
           box-sizing: border-box;
           overflow-y: auto;
         `}
       >
-        <SourceFile
-          sourceFile={sourceFile}
-          selectedNode={selectedNode}
-          onNodeSelect={onNodeSelect}
-        />
+        <SourceFile sourceFile={sourceFile} onNodeSelect={onNodeSelect} />
       </div>
-      {selectedNode !== undefined ? (
-        <NodeDetails
-          node={selectedNode}
-          typeChecker={typeChecker}
-          onNodeSelect={onNodeSelect}
-        />
+      {hasSelectedNode ? (
+        <NodeDetails typeChecker={typeChecker} onNodeSelect={onNodeSelect} />
       ) : null}
     </div>
   );
