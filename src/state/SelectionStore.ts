@@ -4,10 +4,13 @@ import * as ts from "typescript";
 const [useStore] = create<{
   selectedNode: ts.Node | undefined;
   selectedPath: Array<ts.Node> | undefined;
+  hoverNode: ts.Node | undefined;
   setSelectedNode: (node: ts.Node | undefined) => void;
+  setHoverNode: (node: ts.Node | undefined) => void;
 }>((set) => ({
   selectedNode: undefined,
   selectedPath: undefined,
+  hoverNode: undefined,
   setSelectedNode: (node: ts.Node | undefined) => {
     if (node) {
       let selectedPath = [];
@@ -26,6 +29,9 @@ const [useStore] = create<{
         selectedPath: undefined,
       });
     }
+  },
+  setHoverNode: (node: ts.Node | undefined) => {
+    set({ hoverNode: node });
   },
 }));
 

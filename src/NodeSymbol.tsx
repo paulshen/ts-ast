@@ -28,11 +28,10 @@ export default function NodeSymbol({
       {nodeSymbol.valueDeclaration !== undefined ? (
         <div>
           <NodeButton
-            onClick={() => onNodeSelect(nodeSymbol.valueDeclaration)}
+            node={nodeSymbol.valueDeclaration}
+            onNodeSelect={onNodeSelect}
             buttonStyle
-          >
-            {ts.SyntaxKind[nodeSymbol.valueDeclaration.kind]}
-          </NodeButton>
+          />
         </div>
       ) : null}
     </div>

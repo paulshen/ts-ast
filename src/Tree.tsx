@@ -18,6 +18,9 @@ const Styles = {
   treeNodeSelected: css`
     background-color: #ae6ab420;
   `,
+  treeNodeHover: css`
+    background-color: #ae6ab440;
+  `,
   nodeName: css`
     background-color: #f0f0f0;
     color: #000000;
@@ -63,6 +66,7 @@ export function TreeNode({
   });
   const nodeNameText = getNodeName(node);
   const isSelected = useSelectionStore((state) => state.selectedNode === node);
+  const isHover = useSelectionStore((state) => state.hoverNode === node);
   const isPathSelected = useSelectionStore(
     (state) =>
       state.selectedPath !== undefined && state.selectedPath.includes(node)
@@ -84,20 +88,22 @@ export function TreeNode({
     >
       {isSelected ? <Pointer>→</Pointer> : null}
       <div
-        css={isSelected ? Styles.treeNodeSelected : undefined}
+        css={css(
+          isSelected ? Styles.treeNodeSelected : undefined,
+          isHover ? Styles.treeNodeHover : undefined
+        )}
         ref={anchorRef}
       >
         <NodeButton
-          onClick={() => onNodeSelect(node)}
+          node={node}
+          onNodeSelect={onNodeSelect}
           css={css`
             color: ${isLandmarkNodeValue ? "var(--dark)" : "var(--gray)"};
             font-weight: ${isLandmarkNodeValue ? 600 : 400};
           `}
-        >
-          {ts.SyntaxKind[node.kind]}
-        </NodeButton>
+        />
         {nodeNameText !== undefined ? (
-          <span css={Styles.nodeName}>{nodeNameText}</span>
+          <span css={css(Styles.nodeName)}>{nodeNameText}</span>
         ) : null}
         {node.symbol !== undefined ? <SymbolMarker /> : null}
         {children.length > 0 ? (

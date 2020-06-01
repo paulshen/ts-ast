@@ -21,9 +21,12 @@ function NodeBreadcrumbs({
   while (iter !== undefined) {
     const current = iter;
     children.unshift(
-      <NodeButton onClick={() => onNodeSelect(current)} buttonStyle key={i}>
-        {ts.SyntaxKind[current.kind]}
-      </NodeButton>
+      <NodeButton
+        node={current}
+        onNodeSelect={onNodeSelect}
+        buttonStyle
+        key={i}
+      />
     );
     if (current.kind !== ts.SyntaxKind.SourceFile) {
       children.unshift(<span key={`${i}-`}>{" > "}</span>);
@@ -234,11 +237,10 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
                 >
                   <ChildValueLine index={i} />
                   <NodeButton
-                    onClick={() => onNodeSelect(childValue)}
+                    node={childValue}
+                    onNodeSelect={onNodeSelect}
                     buttonStyle
-                  >
-                    {ts.SyntaxKind[childValue.kind]}
-                  </NodeButton>
+                  />
                 </div>
               );
             })}
@@ -269,9 +271,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
             `}
           >
             <ChildValueLine index={0} />
-            <NodeButton onClick={() => onNodeSelect(value)} buttonStyle>
-              {ts.SyntaxKind[value.kind]}
-            </NodeButton>
+            <NodeButton node={value} onNodeSelect={onNodeSelect} buttonStyle />
           </div>
         </ChildRow>
       );

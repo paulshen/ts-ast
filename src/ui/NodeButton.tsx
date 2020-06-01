@@ -1,5 +1,7 @@
 import { css } from "@emotion/core";
 import * as React from "react";
+import * as ts from "typescript";
+import { useSelectionStore } from "../state/SelectionStore";
 
 const Styles = {
   button: css`
@@ -11,19 +13,22 @@ const Styles = {
 };
 
 export default function NodeButton({
-  children,
-  onClick,
+  node,
+  onNodeSelect,
   buttonStyle = false,
   className,
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
+  node: ts.Node;
+  onNodeSelect: (node: ts.Node) => void;
   buttonStyle?: boolean;
   className?: string;
 }) {
+  const setHoverNode = useSelectionStore((state) => state.setHoverNode);
   return (
     <button
-      onClick={onClick}
+      onClick={() => onNodeSelect(node)}
+      onMouseEnter={() => setHoverNode(node)}
+      onMouseLeave={() => setHoverNode(undefined)}
       css={css(
         css`
           background-color: transparent;
@@ -34,15 +39,12 @@ export default function NodeButton({
           font-family: SF Mono;
           font-size: 14px;
           outline-style: none;
-          &:hover {
-            text-decoration: underline;
-          }
         `,
         buttonStyle ? Styles.button : undefined
       )}
       className={className}
     >
-      {children}
+      {ts.SyntaxKind[node.kind]}
     </button>
   );
 }
