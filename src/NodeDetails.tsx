@@ -209,7 +209,8 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       key === "contextualType" ||
       key === "inferenceContext" ||
       key === "endFlowNode" ||
-      key === "returnFlowNode"
+      key === "returnFlowNode" ||
+      key === "lineMap"
     ) {
       continue;
     } else if (typeof value === "function") {
@@ -382,10 +383,12 @@ export default function NodeDetails({
     throw new Error();
   }
   const nodeNameText = getNodeName(node);
-  const nodeType = React.useMemo(() => typeChecker.getTypeAtLocation(node), [
-    typeChecker,
-    node,
-  ]);
+  const nodeType = React.useMemo(() => {
+    if (node.parent === undefined) {
+      return undefined;
+    }
+    return typeChecker.getTypeAtLocation(node);
+  }, [typeChecker, node]);
   const nodeSymbol = React.useMemo(
     () => typeChecker.getSymbolAtLocation(node),
     [typeChecker, node]
