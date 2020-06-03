@@ -371,6 +371,58 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
   );
 }
 
+function Resizer({
+  heightRef,
+  setHeight,
+}: {
+  heightRef: React.RefObject<number>;
+  setHeight: (height: number) => void;
+}) {
+  const onMouseMoveRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseUpRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseDown = (e: React.MouseEvent) => {
+    const startY = e.pageY;
+    const startHeightPx = (heightRef.current! / 100) * window.innerHeight;
+    onMouseMoveRef.current = (e: MouseEvent) => {
+      const deltaY = startY - e.pageY;
+      const heightPx = startHeightPx + deltaY;
+      const newHeight = (heightPx / window.innerHeight) * 100;
+      setHeight(newHeight);
+    };
+    onMouseUpRef.current = (e: MouseEvent) => {
+      window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      window.removeEventListener("mouseup", onMouseUpRef.current!);
+      onMouseMoveRef.current = undefined;
+      onMouseUpRef.current = undefined;
+    };
+    window.addEventListener("mousemove", onMouseMoveRef.current);
+    window.addEventListener("mouseup", onMouseUpRef.current);
+  };
+  React.useEffect(() => {
+    return () => {
+      if (onMouseMoveRef.current !== undefined) {
+        window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      }
+      if (onMouseUpRef.current !== undefined) {
+        window.removeEventListener("mouseup", onMouseUpRef.current!);
+      }
+    };
+  }, []);
+  return (
+    <div
+      css={css`
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        cursor: ns-resize;
+      `}
+      onMouseDown={onMouseDown}
+    ></div>
+  );
+}
+
 export default function NodeDetails({
   typeChecker,
   onNodeSelect,
@@ -378,6 +430,17 @@ export default function NodeDetails({
   typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
 }) {
+  const heightRef = React.useRef(50);
+  const heightDivRef = React.useRef<HTMLDivElement>(null);
+  const setHeight = (height: number) => {
+    heightRef.current = height;
+    const heightDiv = heightDivRef.current;
+    if (heightDiv !== null) {
+      heightDiv.style.height = `${height}%`;
+      heightDiv.style.minHeight = `${height}%`;
+    }
+  };
+
   const node = useSelectionStore((state) => state.selectedNode);
   if (node === undefined) {
     throw new Error();
@@ -401,9 +464,12 @@ export default function NodeDetails({
         font-size: var(--font-size-default);
         padding: 16px;
         box-sizing: border-box;
-        flex-basis: 50%;
         overflow-y: auto;
+        height: 50%;
+        min-height: 50%;
+        position: relative;
       `}
+      ref={heightDivRef}
     >
       <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
       <div
@@ -438,6 +504,7 @@ export default function NodeDetails({
           onNodeSelect={onNodeSelect}
         />
       ) : null}
+      <Resizer heightRef={heightRef} setHeight={setHeight} />
     </div>
   );
 }

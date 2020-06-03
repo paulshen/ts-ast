@@ -5,7 +5,7 @@ import MonacoEditor from "react-monaco-editor";
 import * as ts from "typescript";
 import NodeDetails from "./NodeDetails";
 import { TreeNode } from "./Tree";
-import { getNodeForPosition } from "./Utils";
+import { getNodeForPosition, throttle } from "./Utils";
 import { createProgram } from "./Compiler";
 import { useSelectionStore } from "./state/SelectionStore";
 
@@ -166,7 +166,7 @@ function Output({
           font-family: SF Mono;
           font-size: var(--font-size-default);
           white-space: pre;
-          height: ${hasSelectedNode ? 50 : 100}%;
+          flex-grow: 1;
           padding: 16px;
           box-sizing: border-box;
           overflow-y: auto;
@@ -181,11 +181,81 @@ function Output({
   );
 }
 
+function EditorResizer({
+  editorWidthRef,
+  setEditorWidth,
+}: {
+  editorWidthRef: React.RefObject<number>;
+  setEditorWidth: (width: number) => void;
+}) {
+  const onMouseMoveRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseUpRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseDown = (e: React.MouseEvent) => {
+    const startX = e.pageX;
+    const startWidthPx = (editorWidthRef.current! / 100) * window.innerWidth;
+    onMouseMoveRef.current = (e: MouseEvent) => {
+      const deltaX = e.pageX - startX;
+      const widthPx = startWidthPx + deltaX;
+      const newWidth = (widthPx / window.innerWidth) * 100;
+      setEditorWidth(newWidth);
+    };
+    onMouseUpRef.current = (e: MouseEvent) => {
+      window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      window.removeEventListener("mouseup", onMouseUpRef.current!);
+      onMouseMoveRef.current = undefined;
+      onMouseUpRef.current = undefined;
+    };
+    window.addEventListener("mousemove", onMouseMoveRef.current);
+    window.addEventListener("mouseup", onMouseUpRef.current);
+  };
+  React.useEffect(() => {
+    return () => {
+      if (onMouseMoveRef.current !== undefined) {
+        window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      }
+      if (onMouseUpRef.current !== undefined) {
+        window.removeEventListener("mouseup", onMouseUpRef.current!);
+      }
+    };
+  }, []);
+  return (
+    <div
+      css={css`
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 8px;
+        bottom: 0;
+        cursor: ew-resize;
+      `}
+      onMouseDown={onMouseDown}
+    ></div>
+  );
+}
+
 function App() {
   const [code, setCode] = React.useState(
     () => localStorage.getItem("code") ?? ""
   );
+  const editorWidthRef = React.useRef(50);
+  const editorDivRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
+  const editorLayout = React.useMemo(
+    () =>
+      throttle(() => {
+        editorRef.current?.layout();
+      }, 100),
+    []
+  );
+  const setEditorWidth = (editorWidth: number) => {
+    editorWidthRef.current = editorWidth;
+    const editorDiv = editorDivRef.current;
+    if (editorDiv !== null) {
+      editorDiv.style.width = `${editorWidth}%`;
+      editorDiv.style.minWidth = `${editorWidth}%`;
+      editorLayout();
+    }
+  };
   const { sourceFile, typeChecker } = React.useMemo(() => createProgram(code), [
     code,
   ]);
@@ -204,20 +274,28 @@ function App() {
     >
       <div
         css={css`
-          width: 50vw;
+          width: 50%;
+          min-width: 50%;
         `}
+        ref={editorDivRef}
       >
         <Editor code={code} editorRef={editorRef} onChange={setCode} />
       </div>
       <div
         css={css`
-          width: 50vw;
+          flex-grow: 1;
+          overflow: auto;
+          position: relative;
         `}
       >
         <Output
           sourceFile={sourceFile}
           typeChecker={typeChecker}
           editorRef={editorRef}
+        />
+        <EditorResizer
+          editorWidthRef={editorWidthRef}
+          setEditorWidth={setEditorWidth}
         />
       </div>
     </div>

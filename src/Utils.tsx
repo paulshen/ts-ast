@@ -56,3 +56,15 @@ export function getTsFlags<F>(flagEnum: F, flags: number): Array<F> {
     });
   return rv;
 }
+
+export function throttle<F extends Function>(f: F, ms: number) {
+  let timeout: NodeJS.Timeout | undefined;
+  return () => {
+    if (timeout === undefined) {
+      timeout = setTimeout(() => {
+        timeout = undefined;
+        f();
+      }, ms);
+    }
+  };
+}
