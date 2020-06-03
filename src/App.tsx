@@ -32,7 +32,11 @@ function Editor({
       language="typescript"
       theme="vs-dark"
       value={code}
-      options={{}}
+      options={{
+        minimap: {
+          enabled: false,
+        },
+      }}
       onChange={(newValue) => {
         onChange(newValue);
       }}
