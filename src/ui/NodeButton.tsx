@@ -16,11 +16,13 @@ export default function NodeButton({
   node,
   onNodeSelect,
   buttonStyle = false,
+  customLabel,
   className,
 }: {
   node: ts.Node;
   onNodeSelect: (node: ts.Node) => void;
   buttonStyle?: boolean;
+  customLabel?: string;
   className?: string;
 }) {
   const setHoverNode = useSelectionStore((state) => state.setHoverNode);
@@ -44,7 +46,7 @@ export default function NodeButton({
       )}
       className={className}
     >
-      {ts.SyntaxKind[node.kind]}
+      {customLabel !== undefined ? customLabel : ts.SyntaxKind[node.kind]}
     </button>
   );
 }

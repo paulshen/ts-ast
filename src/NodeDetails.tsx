@@ -2,11 +2,12 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
+import NodeScope from "./NodeScope";
 import NodeSymbol from "./NodeSymbol";
 import NodeType from "./NodeType";
+import { useSelectionStore } from "./state/SelectionStore";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
-import { useSelectionStore } from "./state/SelectionStore";
 
 function NodeBreadcrumbs({
   node,
@@ -504,6 +505,11 @@ export default function NodeDetails({
           onNodeSelect={onNodeSelect}
         />
       ) : null}
+      <NodeScope
+        typeChecker={typeChecker}
+        node={node}
+        onNodeSelect={onNodeSelect}
+      />
       <Resizer heightRef={heightRef} setHeight={setHeight} />
     </div>
   );
