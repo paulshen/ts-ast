@@ -72,113 +72,128 @@ const SourceFile = React.memo(
   }
 );
 
-function Output({
-  sourceFile,
-  typeChecker,
-  editorRef,
-}: {
-  sourceFile: ts.SourceFile;
-  typeChecker: ts.TypeChecker;
-  editorRef: React.RefObject<
-    monacoEditor.editor.IStandaloneCodeEditor | undefined
-  >;
-}) {
-  const selectNode = useSelectionStore((state) => state.setSelectedNode);
-  const hasSelectedNode = useSelectionStore(
-    (state) => state.selectedNode !== undefined
-  );
-  const deltaDecorationsRef = React.useRef<Array<string>>([]);
-  const onNodeSelect = (node: ts.Node) => {
-    // @ts-ignore
-    window.$node = node;
-    selectNode(node);
-    if (editorRef.current !== undefined) {
-      const start = ts.getLineAndCharacterOfPosition(
-        sourceFile,
-        node.getStart(sourceFile)
-      );
-      const end = ts.getLineAndCharacterOfPosition(sourceFile, node.end);
-      const selection = new monacoEditor.Selection(
-        start.line + 1,
-        start.character + 1,
-        end.line + 1,
-        end.character + 1
-      );
-      const editor = editorRef.current;
-      if (editor) {
-        editor.setSelection(selection);
-        deltaDecorationsRef.current = editor.deltaDecorations(
-          deltaDecorationsRef.current,
-          [{ range: selection, options: { className: "selected-text" } }]
+const Output = React.memo(
+  ({
+    sourceFile,
+    typeChecker,
+    editorRef,
+  }: {
+    sourceFile: ts.SourceFile;
+    typeChecker: ts.TypeChecker;
+    editorRef: React.RefObject<
+      monacoEditor.editor.IStandaloneCodeEditor | undefined
+    >;
+  }) => {
+    const selectNode = useSelectionStore((state) => state.setSelectedNode);
+    const hasSelectedNode = useSelectionStore(
+      (state) => state.selectedNode !== undefined
+    );
+    const deltaDecorationsRef = React.useRef<Array<string>>([]);
+    const onNodeSelect = (node: ts.Node) => {
+      // @ts-ignore
+      window.$node = node;
+      selectNode(node);
+      if (editorRef.current !== undefined) {
+        const start = ts.getLineAndCharacterOfPosition(
+          sourceFile,
+          node.getStart(sourceFile)
         );
-        editor.revealRangeInCenterIfOutsideViewport(selection);
-      }
-    }
-  };
-  const sourceFileRef = React.useRef(sourceFile);
-  React.useEffect(() => {
-    sourceFileRef.current = sourceFile;
-    selectNode(undefined);
-    const editor = editorRef.current;
-    if (editor) {
-      deltaDecorationsRef.current = editor.deltaDecorations(
-        deltaDecorationsRef.current,
-        []
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceFile]);
-  React.useEffect(() => {
-    const editor = editorRef.current;
-    if (editor != null) {
-      const d = editor.onDidChangeCursorPosition((e) => {
-        if (e.source === "api") {
-          return;
-        }
-        const editorModel = editor.getModel();
-        if (editorModel === null) {
-          return;
-        }
-        const position = editorModel.getOffsetAt(e.position);
-        const node = getNodeForPosition(sourceFileRef.current, position);
-        if (node !== undefined) {
-          selectNode(node);
+        const end = ts.getLineAndCharacterOfPosition(sourceFile, node.end);
+        const selection = new monacoEditor.Selection(
+          start.line + 1,
+          start.character + 1,
+          end.line + 1,
+          end.character + 1
+        );
+        const editor = editorRef.current;
+        if (editor) {
+          editor.setSelection(selection);
           deltaDecorationsRef.current = editor.deltaDecorations(
             deltaDecorationsRef.current,
-            []
+            [{ range: selection, options: { className: "selected-text" } }]
           );
+          editor.revealRangeInCenterIfOutsideViewport(selection);
         }
-      });
-      return () => d.dispose();
-    }
-  });
+      }
+    };
+    const sourceFileRef = React.useRef(sourceFile);
+    React.useEffect(() => {
+      sourceFileRef.current = sourceFile;
+      selectNode(undefined);
+      const editor = editorRef.current;
+      if (editor) {
+        deltaDecorationsRef.current = editor.deltaDecorations(
+          deltaDecorationsRef.current,
+          []
+        );
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sourceFile]);
+    React.useEffect(() => {
+      const editor = editorRef.current;
+      if (editor != null) {
+        const d = editor.onDidChangeCursorPosition((e) => {
+          if (e.source === "api") {
+            return;
+          }
+          const editorModel = editor.getModel();
+          if (editorModel === null) {
+            return;
+          }
+          const position = editorModel.getOffsetAt(e.position);
+          const node = getNodeForPosition(sourceFileRef.current, position);
+          if (node !== undefined) {
+            selectNode(node);
+            deltaDecorationsRef.current = editor.deltaDecorations(
+              deltaDecorationsRef.current,
+              []
+            );
+          }
+        });
+        return () => d.dispose();
+      }
+    });
 
-  return (
-    <div
-      css={css`
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      `}
-    >
+    return (
       <div
         css={css`
-          font-family: SF Mono;
-          font-size: var(--font-size-default);
-          white-space: pre;
-          flex-grow: 1;
-          padding: 16px;
-          box-sizing: border-box;
-          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         `}
       >
-        <SourceFile sourceFile={sourceFile} onNodeSelect={onNodeSelect} />
+        <div
+          css={css`
+            font-family: SF Mono;
+            font-size: var(--font-size-default);
+            white-space: pre;
+            flex-grow: 1;
+            padding: 16px;
+            box-sizing: border-box;
+            overflow-y: auto;
+          `}
+        >
+          <SourceFile sourceFile={sourceFile} onNodeSelect={onNodeSelect} />
+        </div>
+        {hasSelectedNode ? (
+          <NodeDetails typeChecker={typeChecker} onNodeSelect={onNodeSelect} />
+        ) : null}
       </div>
-      {hasSelectedNode ? (
-        <NodeDetails typeChecker={typeChecker} onNodeSelect={onNodeSelect} />
-      ) : null}
-    </div>
-  );
+    );
+  }
+);
+
+function throttleEnd(fn: (...args: Array<any>) => void, ms: number) {
+  let timeout: NodeJS.Timeout | undefined;
+  return (...args: Array<any>) => {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      fn(...args);
+      timeout = undefined;
+    }, ms);
+  };
 }
 
 function EditorResizer({
@@ -256,9 +271,19 @@ function App() {
       editorLayout();
     }
   };
-  const { sourceFile, typeChecker } = React.useMemo(() => createProgram(code), [
-    code,
-  ]);
+  const [{ sourceFile, typeChecker }, updateProgram] = React.useState(() =>
+    createProgram(code)
+  );
+  const updateProgramThrottled = React.useMemo(
+    () =>
+      throttleEnd((code) => {
+        updateProgram(createProgram(code));
+      }, 500),
+    []
+  );
+  React.useEffect(() => {
+    updateProgramThrottled(code);
+  }, [updateProgramThrottled, code]);
   // @ts-ignore
   window.$typeChecker = typeChecker;
   React.useEffect(() => {
