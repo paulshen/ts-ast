@@ -64,7 +64,14 @@ function ChildValue({ label, value }: { label: string; value: any }) {
             <span>]</span>
           </>
         ) : (
-          <span onClick={() => setExpanded(true)}>[..]</span>
+          <span
+            onClick={() => setExpanded(true)}
+            css={css`
+              cursor: pointer;
+            `}
+          >
+            [..]
+          </span>
         )}
       </div>
     );
@@ -95,14 +102,27 @@ function ChildValue({ label, value }: { label: string; value: any }) {
             <div>{"}"}</div>
           </>
         ) : (
-          <span onClick={() => setExpanded(true)}>{"{..}"}</span>
+          <span
+            onClick={() => setExpanded(true)}
+            css={css`
+              cursor: pointer;
+            `}
+          >
+            {"{..}"}
+          </span>
         )}
       </div>
     );
   }
   return (
     <div>
-      <span>{label}: </span>
+      <span
+        css={css`
+          color: var(--gray);
+        `}
+      >
+        {label}:{" "}
+      </span>
       {stringify(value)}
     </div>
   );

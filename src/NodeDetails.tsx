@@ -3,13 +3,11 @@ import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
 import NodeRaw from "./NodeRaw";
-import NodeScope from "./NodeScope";
-import NodeSymbol from "./NodeSymbol";
-import NodeType from "./NodeType";
+import NodeTypeChecker from "./NodeTypeChecker";
 import { useSelectionStore } from "./state/SelectionStore";
+import DetailBox from "./ui/DetailBox";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
-import DetailBox from "./ui/DetailBox";
 
 const Styles = {
   tabButton: (isSelected: boolean) => css`
@@ -279,20 +277,24 @@ function Tabs({
       >
         Raw
       </button>
+      <button
+        onClick={() => onSelect(2)}
+        css={Styles.tabButton(selectedTab === 2)}
+      >
+        TypeChecker
+      </button>
     </div>
   );
 }
 
 function DefaultBody({
   node,
-  typeChecker,
   onNodeSelect,
 }: {
   node: ts.Node;
-  typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
 }) {
-  const children = [];
+  const nonChildProperties = [];
   const childNodes = [];
   for (let key in node) {
     // @ts-ignore
@@ -379,7 +381,7 @@ function DefaultBody({
         </ChildRow>
       );
     } else {
-      children.push(
+      nonChildProperties.push(
         <div key={key}>
           <span
             css={css`
@@ -395,22 +397,12 @@ function DefaultBody({
     }
   }
 
-  const nodeType = React.useMemo(() => {
-    if (node.parent === undefined) {
-      return undefined;
-    }
-    return typeChecker.getTypeAtLocation(node);
-  }, [typeChecker, node]);
-  const nodeSymbol = React.useMemo(
-    () => typeChecker.getSymbolAtLocation(node),
-    [typeChecker, node]
-  );
   return (
     <div>
       {childNodes.length > 0 ? (
         <div
           css={css`
-            margin-top: var(--line-height);
+            margin: var(--line-height) 0;
             display: flex;
           `}
         >
@@ -434,23 +426,15 @@ function DefaultBody({
           ["Position", `${node.pos}-${node.end}`],
         ]}
       />
-      {children}
-      {nodeType !== undefined ? (
-        <NodeType typeChecker={typeChecker} node={node} nodeType={nodeType} />
+      {nonChildProperties.length > 0 ? (
+        <div
+          css={css`
+            margin-bottom: var(--line-height);
+          `}
+        >
+          {nonChildProperties}
+        </div>
       ) : null}
-      {nodeSymbol !== undefined ? (
-        <NodeSymbol
-          typeChecker={typeChecker}
-          node={node}
-          nodeSymbol={nodeSymbol}
-          onNodeSelect={onNodeSelect}
-        />
-      ) : null}
-      <NodeScope
-        typeChecker={typeChecker}
-        node={node}
-        onNodeSelect={onNodeSelect}
-      />
       <DetailBox label="Flags">
         <PropertyTable
           // @ts-ignore
@@ -543,13 +527,12 @@ export default function NodeDetails({
         css={css`
           flex-grow: 1;
           overflow-y: auto;
-          padding: 16px;
+          padding: 8px 16px 16px;
         `}
       >
         <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
         <div
           css={css`
-            font-size: 24px;
             font-weight: 600;
             margin-bottom: var(--line-height);
           `}
@@ -568,13 +551,15 @@ export default function NodeDetails({
           ) : null}
         </div>
         {tab === 0 ? (
-          <DefaultBody
-            node={node}
-            typeChecker={typeChecker}
-            onNodeSelect={onNodeSelect}
-          />
+          <DefaultBody node={node} onNodeSelect={onNodeSelect} />
         ) : tab === 1 ? (
           <NodeRaw node={node} />
+        ) : tab === 2 ? (
+          <NodeTypeChecker
+            node={node}
+            onNodeSelect={onNodeSelect}
+            typeChecker={typeChecker}
+          />
         ) : null}
       </div>
       <Tabs selectedTab={tab} onSelect={setTab} />
