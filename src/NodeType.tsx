@@ -1,17 +1,8 @@
 import { css } from "@emotion/core";
 import * as React from "react";
 import * as ts from "typescript";
+import DetailBox from "./ui/DetailBox";
 import { getTsFlags } from "./Utils";
-import styled from "@emotion/styled";
-
-const TypeLabel = styled.label`
-  background-color: var(--white);
-  font-size: 10px;
-  padding: 0 4px;
-  position: absolute;
-  left: 4px;
-  top: -8px;
-`;
 
 export default function NodeType({
   typeChecker,
@@ -23,16 +14,7 @@ export default function NodeType({
   nodeType: ts.Type;
 }) {
   return (
-    <div
-      css={css`
-        border: 1px solid var(--very-light);
-        border-radius: 4px;
-        margin: 12px -8px 8px;
-        padding: 7px;
-        position: relative;
-      `}
-    >
-      <TypeLabel>Type</TypeLabel>
+    <DetailBox label="Type">
       <div
         css={css`
           font-weight: 600;
@@ -47,6 +29,6 @@ export default function NodeType({
           .map((flag) => ts.TypeFlags[flag])
           .join(" | ")}
       </div>
-    </div>
+    </DetailBox>
   );
 }

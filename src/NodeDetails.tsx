@@ -9,6 +9,7 @@ import NodeType from "./NodeType";
 import { useSelectionStore } from "./state/SelectionStore";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
+import DetailBox from "./ui/DetailBox";
 
 const Styles = {
   tabButton: (isSelected: boolean) => css`
@@ -200,7 +201,97 @@ function ChildValueLine({ index }: { index: number }) {
   );
 }
 
-function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
+function Resizer({
+  heightRef,
+  setHeight,
+}: {
+  heightRef: React.RefObject<number>;
+  setHeight: (height: number) => void;
+}) {
+  const onMouseMoveRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseUpRef = React.useRef<(event: MouseEvent) => void>();
+  const onMouseDown = (e: React.MouseEvent) => {
+    const startY = e.pageY;
+    const startHeightPx = (heightRef.current! / 100) * window.innerHeight;
+    onMouseMoveRef.current = (e: MouseEvent) => {
+      const deltaY = startY - e.pageY;
+      const heightPx = startHeightPx + deltaY;
+      const newHeight = (heightPx / window.innerHeight) * 100;
+      setHeight(newHeight);
+    };
+    onMouseUpRef.current = (e: MouseEvent) => {
+      window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      window.removeEventListener("mouseup", onMouseUpRef.current!);
+      onMouseMoveRef.current = undefined;
+      onMouseUpRef.current = undefined;
+    };
+    window.addEventListener("mousemove", onMouseMoveRef.current);
+    window.addEventListener("mouseup", onMouseUpRef.current);
+  };
+  React.useEffect(() => {
+    return () => {
+      if (onMouseMoveRef.current !== undefined) {
+        window.removeEventListener("mousemove", onMouseMoveRef.current!);
+      }
+      if (onMouseUpRef.current !== undefined) {
+        window.removeEventListener("mouseup", onMouseUpRef.current!);
+      }
+    };
+  }, []);
+  return (
+    <div
+      css={css`
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        cursor: ns-resize;
+      `}
+      onMouseDown={onMouseDown}
+    ></div>
+  );
+}
+
+function Tabs({
+  selectedTab,
+  onSelect,
+}: {
+  selectedTab: number;
+  onSelect: (tab: number) => void;
+}) {
+  return (
+    <div
+      css={css`
+        border-top: 1px solid var(--very-light);
+        display: flex;
+      `}
+    >
+      <button
+        onClick={() => onSelect(0)}
+        css={Styles.tabButton(selectedTab === 0)}
+      >
+        Default
+      </button>
+      <button
+        onClick={() => onSelect(1)}
+        css={Styles.tabButton(selectedTab === 1)}
+      >
+        Raw
+      </button>
+    </div>
+  );
+}
+
+function DefaultBody({
+  node,
+  typeChecker,
+  onNodeSelect,
+}: {
+  node: ts.Node;
+  typeChecker: ts.TypeChecker;
+  onNodeSelect: (node: ts.Node) => void;
+}) {
   const children = [];
   const childNodes = [];
   for (let key in node) {
@@ -303,6 +394,17 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
       );
     }
   }
+
+  const nodeType = React.useMemo(() => {
+    if (node.parent === undefined) {
+      return undefined;
+    }
+    return typeChecker.getTypeAtLocation(node);
+  }, [typeChecker, node]);
+  const nodeSymbol = React.useMemo(
+    () => typeChecker.getSymbolAtLocation(node),
+    [typeChecker, node]
+  );
   return (
     <div>
       {childNodes.length > 0 ? (
@@ -332,161 +434,7 @@ function renderBody(node: ts.Node, onNodeSelect: (node: ts.Node) => void) {
           ["Position", `${node.pos}-${node.end}`],
         ]}
       />
-      <PropertyTable
-        // @ts-ignore
-        data={[
-          [
-            "Flags",
-
-            <div>
-              {getTsFlags(ts.NodeFlags, node.flags).map((flag) => (
-                // @ts-ignore
-                <div key={flag}>{ts.NodeFlags[flag]}</div>
-              ))}
-            </div>,
-          ],
-          (node as any).modifierFlagsCache !== undefined
-            ? ([
-                "Modifier Cache",
-                <div>
-                  {getTsFlags(
-                    ts.ModifierFlags,
-                    (node as any).modifierFlagsCache
-                  ).map((flag) => (
-                    // @ts-ignore
-                    <div key={flag}>{ts.ModifierFlags[flag]}</div>
-                  ))}
-                </div>,
-              ] as [string, React.ReactNode])
-            : undefined,
-          (node as any).transformFlags !== undefined
-            ? ([
-                "Transform",
-                <div>
-                  {
-                    // @ts-ignore
-                    getTsFlags(
-                      ts.TransformFlags,
-                      (node as any).transformFlags
-                    ).map((flag) => (
-                      // @ts-ignore
-                      <div key={flag}>{ts.TransformFlags[flag]}</div>
-                    ))
-                  }
-                </div>,
-              ] as [string, React.ReactNode])
-            : undefined,
-        ].filter((x) => x !== undefined)}
-      />
       {children}
-    </div>
-  );
-}
-
-function Resizer({
-  heightRef,
-  setHeight,
-}: {
-  heightRef: React.RefObject<number>;
-  setHeight: (height: number) => void;
-}) {
-  const onMouseMoveRef = React.useRef<(event: MouseEvent) => void>();
-  const onMouseUpRef = React.useRef<(event: MouseEvent) => void>();
-  const onMouseDown = (e: React.MouseEvent) => {
-    const startY = e.pageY;
-    const startHeightPx = (heightRef.current! / 100) * window.innerHeight;
-    onMouseMoveRef.current = (e: MouseEvent) => {
-      const deltaY = startY - e.pageY;
-      const heightPx = startHeightPx + deltaY;
-      const newHeight = (heightPx / window.innerHeight) * 100;
-      setHeight(newHeight);
-    };
-    onMouseUpRef.current = (e: MouseEvent) => {
-      window.removeEventListener("mousemove", onMouseMoveRef.current!);
-      window.removeEventListener("mouseup", onMouseUpRef.current!);
-      onMouseMoveRef.current = undefined;
-      onMouseUpRef.current = undefined;
-    };
-    window.addEventListener("mousemove", onMouseMoveRef.current);
-    window.addEventListener("mouseup", onMouseUpRef.current);
-  };
-  React.useEffect(() => {
-    return () => {
-      if (onMouseMoveRef.current !== undefined) {
-        window.removeEventListener("mousemove", onMouseMoveRef.current!);
-      }
-      if (onMouseUpRef.current !== undefined) {
-        window.removeEventListener("mouseup", onMouseUpRef.current!);
-      }
-    };
-  }, []);
-  return (
-    <div
-      css={css`
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 8px;
-        cursor: ns-resize;
-      `}
-      onMouseDown={onMouseDown}
-    ></div>
-  );
-}
-
-function Tabs({
-  selectedTab,
-  onSelect,
-}: {
-  selectedTab: number;
-  onSelect: (tab: number) => void;
-}) {
-  return (
-    <div
-      css={css`
-        border-top: 1px solid var(--very-light);
-        display: flex;
-      `}
-    >
-      <button
-        onClick={() => onSelect(0)}
-        css={Styles.tabButton(selectedTab === 0)}
-      >
-        Default
-      </button>
-      <button
-        onClick={() => onSelect(1)}
-        css={Styles.tabButton(selectedTab === 1)}
-      >
-        Raw
-      </button>
-    </div>
-  );
-}
-
-function DefaultBody({
-  node,
-  typeChecker,
-  onNodeSelect,
-}: {
-  node: ts.Node;
-  typeChecker: ts.TypeChecker;
-  onNodeSelect: (node: ts.Node) => void;
-}) {
-  const nodeType = React.useMemo(() => {
-    if (node.parent === undefined) {
-      return undefined;
-    }
-    return typeChecker.getTypeAtLocation(node);
-  }, [typeChecker, node]);
-  const nodeSymbol = React.useMemo(
-    () => typeChecker.getSymbolAtLocation(node),
-    [typeChecker, node]
-  );
-  return (
-    <>
-      {renderBody(node, onNodeSelect)}
       {nodeType !== undefined ? (
         <NodeType typeChecker={typeChecker} node={node} nodeType={nodeType} />
       ) : null}
@@ -503,7 +451,55 @@ function DefaultBody({
         node={node}
         onNodeSelect={onNodeSelect}
       />
-    </>
+      <DetailBox label="Flags">
+        <PropertyTable
+          // @ts-ignore
+          data={[
+            [
+              "Flags",
+
+              <div>
+                {getTsFlags(ts.NodeFlags, node.flags).map((flag) => (
+                  // @ts-ignore
+                  <div key={flag}>{ts.NodeFlags[flag]}</div>
+                ))}
+              </div>,
+            ],
+            (node as any).modifierFlagsCache !== undefined
+              ? ([
+                  "Modifier Cache",
+                  <div>
+                    {getTsFlags(
+                      ts.ModifierFlags,
+                      (node as any).modifierFlagsCache
+                    ).map((flag) => (
+                      // @ts-ignore
+                      <div key={flag}>{ts.ModifierFlags[flag]}</div>
+                    ))}
+                  </div>,
+                ] as [string, React.ReactNode])
+              : undefined,
+            (node as any).transformFlags !== undefined
+              ? ([
+                  "Transform",
+                  <div>
+                    {
+                      // @ts-ignore
+                      getTsFlags(
+                        ts.TransformFlags,
+                        (node as any).transformFlags
+                      ).map((flag) => (
+                        // @ts-ignore
+                        <div key={flag}>{ts.TransformFlags[flag]}</div>
+                      ))
+                    }
+                  </div>,
+                ] as [string, React.ReactNode])
+              : undefined,
+          ].filter((x) => x !== undefined)}
+        />
+      </DetailBox>
+    </div>
   );
 }
 
