@@ -2,12 +2,23 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
+import NodeRaw from "./NodeRaw";
 import NodeScope from "./NodeScope";
 import NodeSymbol from "./NodeSymbol";
 import NodeType from "./NodeType";
 import { useSelectionStore } from "./state/SelectionStore";
 import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
+
+const Styles = {
+  tabButton: (isSelected: boolean) => css`
+    background-color: transparent;
+    border: 0;
+    border-right: 1px solid var(--very-light);
+    font-weight: ${isSelected ? 600 : 400};
+    padding: 4px;
+  `,
+};
 
 function NodeBreadcrumbs({
   node,
@@ -424,29 +435,45 @@ function Resizer({
   );
 }
 
-export default function NodeDetails({
+function Tabs({
+  selectedTab,
+  onSelect,
+}: {
+  selectedTab: number;
+  onSelect: (tab: number) => void;
+}) {
+  return (
+    <div
+      css={css`
+        border-top: 1px solid var(--very-light);
+        display: flex;
+      `}
+    >
+      <button
+        onClick={() => onSelect(0)}
+        css={Styles.tabButton(selectedTab === 0)}
+      >
+        Default
+      </button>
+      <button
+        onClick={() => onSelect(1)}
+        css={Styles.tabButton(selectedTab === 1)}
+      >
+        Raw
+      </button>
+    </div>
+  );
+}
+
+function DefaultBody({
+  node,
   typeChecker,
   onNodeSelect,
 }: {
+  node: ts.Node;
   typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
 }) {
-  const heightRef = React.useRef(50);
-  const heightDivRef = React.useRef<HTMLDivElement>(null);
-  const setHeight = (height: number) => {
-    heightRef.current = height;
-    const heightDiv = heightDivRef.current;
-    if (heightDiv !== null) {
-      heightDiv.style.height = `${height}%`;
-      heightDiv.style.minHeight = `${height}%`;
-    }
-  };
-
-  const node = useSelectionStore((state) => state.selectedNode);
-  if (node === undefined) {
-    throw new Error();
-  }
-  const nodeNameText = getNodeName(node);
   const nodeType = React.useMemo(() => {
     if (node.parent === undefined) {
       return undefined;
@@ -458,41 +485,7 @@ export default function NodeDetails({
     [typeChecker, node]
   );
   return (
-    <div
-      css={css`
-        border-top: 1px solid #e0e0e0;
-        font-family: SF Mono;
-        font-size: var(--font-size-default);
-        padding: 16px;
-        box-sizing: border-box;
-        overflow-y: auto;
-        height: 50%;
-        min-height: 50%;
-        position: relative;
-      `}
-      ref={heightDivRef}
-    >
-      <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
-      <div
-        css={css`
-          font-size: 24px;
-          font-weight: 600;
-          margin-bottom: var(--line-height);
-        `}
-      >
-        {ts.SyntaxKind[node.kind]}
-        {nodeNameText !== undefined ? (
-          <span
-            css={css`
-              background-color: #e0e0e0;
-              color: var(--dark);
-              margin-left: 8px;
-            `}
-          >
-            {nodeNameText}
-          </span>
-        ) : null}
-      </div>
+    <>
       {renderBody(node, onNodeSelect)}
       {nodeType !== undefined ? (
         <NodeType typeChecker={typeChecker} node={node} nodeType={nodeType} />
@@ -510,6 +503,85 @@ export default function NodeDetails({
         node={node}
         onNodeSelect={onNodeSelect}
       />
+    </>
+  );
+}
+
+export default function NodeDetails({
+  typeChecker,
+  onNodeSelect,
+}: {
+  typeChecker: ts.TypeChecker;
+  onNodeSelect: (node: ts.Node) => void;
+}) {
+  const [tab, setTab] = React.useState(0);
+  const heightRef = React.useRef(50);
+  const heightDivRef = React.useRef<HTMLDivElement>(null);
+  const setHeight = (height: number) => {
+    heightRef.current = height;
+    const heightDiv = heightDivRef.current;
+    if (heightDiv !== null) {
+      heightDiv.style.height = `${height}%`;
+      heightDiv.style.minHeight = `${height}%`;
+    }
+  };
+
+  const node = useSelectionStore((state) => state.selectedNode);
+  if (node === undefined) {
+    throw new Error();
+  }
+  const nodeNameText = getNodeName(node);
+  return (
+    <div
+      css={css`
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        height: 50%;
+        min-height: 50%;
+        position: relative;
+      `}
+      ref={heightDivRef}
+    >
+      <div
+        css={css`
+          flex-grow: 1;
+          overflow-y: auto;
+          padding: 16px;
+        `}
+      >
+        <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
+        <div
+          css={css`
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: var(--line-height);
+          `}
+        >
+          {ts.SyntaxKind[node.kind]}
+          {nodeNameText !== undefined ? (
+            <span
+              css={css`
+                background-color: #e0e0e0;
+                color: var(--dark);
+                margin-left: 8px;
+              `}
+            >
+              {nodeNameText}
+            </span>
+          ) : null}
+        </div>
+        {tab === 0 ? (
+          <DefaultBody
+            node={node}
+            typeChecker={typeChecker}
+            onNodeSelect={onNodeSelect}
+          />
+        ) : tab === 1 ? (
+          <NodeRaw node={node} />
+        ) : null}
+      </div>
+      <Tabs selectedTab={tab} onSelect={setTab} />
       <Resizer heightRef={heightRef} setHeight={setHeight} />
     </div>
   );

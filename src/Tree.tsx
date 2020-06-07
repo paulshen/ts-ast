@@ -115,8 +115,6 @@ export function TreeNode({
               background-color: transparent;
               border: 0;
               color: #e0e0e0;
-              font-family: SF Mono;
-              font-size: 14px;
               padding: 0 4px;
             `}
           >

@@ -159,13 +159,17 @@ const Output = React.memo(
         css={css`
           display: flex;
           flex-direction: column;
+          font-family: SF Mono;
+          font-size: var(--font-size-default);
           height: 100%;
+          button {
+            font-family: SF Mono;
+            font-size: var(--font-size-default);
+          }
         `}
       >
         <div
           css={css`
-            font-family: SF Mono;
-            font-size: var(--font-size-default);
             white-space: pre;
             flex-grow: 1;
             padding: 16px;

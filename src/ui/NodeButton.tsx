@@ -38,8 +38,6 @@ export default function NodeButton({
           border: 0;
           cursor: pointer;
           margin: 0;
-          font-family: SF Mono;
-          font-size: 14px;
           outline-style: none;
         `,
         buttonStyle ? Styles.button : undefined
