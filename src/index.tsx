@@ -20,6 +20,9 @@ ReactDOM.render(
           --teal: #21b5c2;
           --white: #ffffff;
         }
+        .monaco-editor .selected-text {
+          background-color: #264f78 !important;
+        }
       `}
     />
     <App />
