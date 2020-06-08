@@ -77,12 +77,14 @@ const Output = React.memo(
     sourceFile,
     typeChecker,
     editorRef,
+    setCode,
   }: {
     sourceFile: ts.SourceFile;
     typeChecker: ts.TypeChecker;
     editorRef: React.RefObject<
       monacoEditor.editor.IStandaloneCodeEditor | undefined
     >;
+    setCode: (code: string) => void;
   }) => {
     const selectNode = useSelectionStore((state) => state.setSelectedNode);
     const hasSelectedNode = useSelectionStore(
@@ -180,7 +182,12 @@ const Output = React.memo(
           <SourceFile sourceFile={sourceFile} onNodeSelect={onNodeSelect} />
         </div>
         {hasSelectedNode ? (
-          <NodeDetails typeChecker={typeChecker} onNodeSelect={onNodeSelect} />
+          <NodeDetails
+            typeChecker={typeChecker}
+            onNodeSelect={onNodeSelect}
+            sourceFile={sourceFile}
+            setCode={setCode}
+          />
         ) : null}
       </div>
     );
@@ -319,6 +326,7 @@ function App() {
       >
         <Output
           sourceFile={sourceFile}
+          setCode={setCode}
           typeChecker={typeChecker}
           editorRef={editorRef}
         />

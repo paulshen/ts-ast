@@ -2,6 +2,7 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
+import { removeNode } from "./manipulation/NodeManipulator";
 import NodeRaw from "./NodeRaw";
 import NodeTypeChecker from "./NodeTypeChecker";
 import { useSelectionStore } from "./state/SelectionStore";
@@ -290,9 +291,13 @@ function Tabs({
 function DefaultBody({
   node,
   onNodeSelect,
+  sourceFile,
+  setCode,
 }: {
   node: ts.Node;
   onNodeSelect: (node: ts.Node) => void;
+  sourceFile: ts.SourceFile;
+  setCode: (code: string) => void;
 }) {
   const nonChildProperties = [];
   const childNodes = [];
@@ -435,6 +440,16 @@ function DefaultBody({
           {nonChildProperties}
         </div>
       ) : null}
+      <DetailBox label="Manipulation">
+        <button
+          onClick={() => {
+            const newCode = removeNode(sourceFile, node);
+            setCode(newCode);
+          }}
+        >
+          Remove
+        </button>
+      </DetailBox>
       <DetailBox label="Flags">
         <PropertyTable
           // @ts-ignore
@@ -490,9 +505,13 @@ function DefaultBody({
 export default function NodeDetails({
   typeChecker,
   onNodeSelect,
+  sourceFile,
+  setCode,
 }: {
   typeChecker: ts.TypeChecker;
   onNodeSelect: (node: ts.Node) => void;
+  sourceFile: ts.SourceFile;
+  setCode: (code: string) => void;
 }) {
   const [tab, setTab] = React.useState(0);
   const heightRef = React.useRef(50);
@@ -551,7 +570,12 @@ export default function NodeDetails({
           ) : null}
         </div>
         {tab === 0 ? (
-          <DefaultBody node={node} onNodeSelect={onNodeSelect} />
+          <DefaultBody
+            node={node}
+            onNodeSelect={onNodeSelect}
+            sourceFile={sourceFile}
+            setCode={setCode}
+          />
         ) : tab === 1 ? (
           <NodeRaw node={node} />
         ) : tab === 2 ? (
