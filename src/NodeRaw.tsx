@@ -27,11 +27,10 @@ function stringify(value: any) {
 const LabelButton = styled.button`
   background-color: transparent;
   border: 0;
+  color: var(--gray);
   cursor: pointer;
   padding: 0;
-  &:hover {
-    text-decoration: underline;
-  }
+  text-decoration: underline;
 `;
 
 function ChildValue({ label, value }: { label: string; value: any }) {
