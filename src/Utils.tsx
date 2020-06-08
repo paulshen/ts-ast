@@ -68,3 +68,33 @@ export function throttle<F extends Function>(f: F, ms: number) {
     }
   };
 }
+
+export function getPathForNode(node: ts.Node): Array<number> {
+  const path: Array<number> = [];
+  let iter = node;
+  while (!ts.isSourceFile(iter)) {
+    const parentNode = iter.parent;
+    let i = 0;
+    const iterNode = iter;
+    parentNode.forEachChild((child: ts.Node) => {
+      if (child === iterNode) {
+        path.unshift(i);
+      }
+      i++;
+    });
+    iter = parentNode;
+  }
+  path.unshift(0);
+  return path;
+}
+
+export function isParentNode(node: ts.Node, parentNode: ts.Node): boolean {
+  let iter = node.parent;
+  while (iter !== undefined) {
+    if (iter === parentNode) {
+      return true;
+    }
+    iter = iter.parent;
+  }
+  return false;
+}

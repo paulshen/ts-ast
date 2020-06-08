@@ -2,13 +2,16 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
-import NodeButton from "./ui/NodeButton";
-import { getNodeName, isLandmarkNode } from "./Utils";
+import { pathToString, useExpandStore } from "./state/ExpandStore";
 import { useSelectionStore } from "./state/SelectionStore";
+import NodeButton from "./ui/NodeButton";
+import { getNodeName, isLandmarkNode, isParentNode } from "./Utils";
 
 const Styles = {
   treeNode: css`
     color: #808080;
+  `,
+  treeNodeName: css`
     position: relative;
   `,
   treeNodePathSelected: css`
@@ -16,21 +19,19 @@ const Styles = {
     margin: -1px;
   `,
   treeNodeSelected: css`
-    background-color: #ae6ab420;
+    background-color: #ae6ab4;
   `,
   treeNodeHover: css`
     background-color: #ae6ab440;
   `,
   nodeName: css`
-    background-color: #f0f0f0;
-    color: #000000;
     margin-left: 8px;
   `,
 };
 const Pointer = styled.div`
   position: absolute;
   right: 100%;
-  top: 0;
+  margin-right: 4px;
   color: var(--purple);
 `;
 function SymbolMarker() {
@@ -50,23 +51,36 @@ function SymbolMarker() {
 
 export function TreeNode({
   node,
+  path,
   onNodeSelect,
 }: {
   node: ts.Node;
+  path: Array<number>;
   onNodeSelect: (node: ts.Node) => void;
 }) {
-  const [expanded, setExpanded] = React.useState(true);
+  const expanded = useExpandStore(({ expanded }) =>
+    expanded.has(pathToString(path))
+  );
+  const setExpanded = useExpandStore(({ setExpanded }) => setExpanded);
   const children: Array<React.ReactNode> = [];
   let i = 0;
   node.forEachChild((childNode) => {
     children.push(
-      <TreeNode node={childNode} onNodeSelect={onNodeSelect} key={i} />
+      <TreeNode
+        node={childNode}
+        path={[...path, i]}
+        onNodeSelect={onNodeSelect}
+        key={i}
+      />
     );
     i++;
   });
   const nodeNameText = getNodeName(node);
   const isSelected = useSelectionStore((state) => state.selectedNode === node);
   const isHover = useSelectionStore((state) => state.hoverNode === node);
+  const childIsHover = useSelectionStore(
+    ({ hoverNode }) => hoverNode !== undefined && isParentNode(hoverNode, node)
+  );
   const isPathSelected = useSelectionStore(
     (state) =>
       state.selectedPath !== undefined && state.selectedPath.includes(node)
@@ -86,43 +100,65 @@ export function TreeNode({
         isPathSelected ? Styles.treeNodePathSelected : undefined
       )}
     >
-      {isSelected ? <Pointer>→</Pointer> : null}
+      {isSelected ? (
+        <Pointer>→</Pointer>
+      ) : isPathSelected ? (
+        <Pointer>↓</Pointer>
+      ) : null}
       <div
         css={css(
-          isSelected ? Styles.treeNodeSelected : undefined,
-          isHover ? Styles.treeNodeHover : undefined
+          Styles.treeNodeName,
+          isHover ? Styles.treeNodeHover : undefined,
+          isSelected ? Styles.treeNodeSelected : undefined
         )}
         ref={anchorRef}
       >
-        <NodeButton
-          node={node}
-          onNodeSelect={onNodeSelect}
-          css={css`
-            color: ${isLandmarkNodeValue ? "var(--dark)" : "var(--gray)"};
-            font-weight: ${isLandmarkNodeValue ? 600 : 400};
-          `}
-        />
-        {nodeNameText !== undefined ? (
-          <span css={css(Styles.nodeName)}>{nodeNameText}</span>
-        ) : null}
-        {node.symbol !== undefined ? <SymbolMarker /> : null}
-        {children.length > 0 ? (
+        {!ts.isSourceFile(node) && children.length > 0 ? (
           <button
             onClick={() => {
-              setExpanded((expanded) => !expanded);
+              setExpanded(path, !expanded);
             }}
             css={css`
               background-color: transparent;
               border: 0;
-              color: #e0e0e0;
+              color: var(--light);
               padding: 0 4px;
+              position: absolute;
+              right: 100%;
             `}
           >
             {expanded ? "-" : "+"}
           </button>
         ) : null}
+        <NodeButton
+          node={node}
+          onNodeSelect={onNodeSelect}
+          css={css`
+            color: ${isSelected
+              ? "var(--white)"
+              : isLandmarkNodeValue
+              ? "var(--dark)"
+              : "var(--gray)"};
+            font-weight: ${isLandmarkNodeValue ? 600 : 400};
+          `}
+        />
+        {nodeNameText !== undefined ? (
+          <span
+            css={css(
+              Styles.nodeName,
+              isSelected
+                ? css`
+                    color: var(--white);
+                  `
+                : undefined
+            )}
+          >
+            {nodeNameText}
+          </span>
+        ) : null}
+        {node.symbol !== undefined ? <SymbolMarker /> : null}
       </div>
-      {expanded && children.length > 0 ? (
+      {(expanded || childIsHover || isPathSelected) && children.length > 0 ? (
         <div
           css={css`
             padding-left: 16px;

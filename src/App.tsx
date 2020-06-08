@@ -3,11 +3,12 @@ import * as monacoEditor from "monaco-editor/esm/vs/editor/editor.api";
 import React from "react";
 import MonacoEditor from "react-monaco-editor";
 import * as ts from "typescript";
+import { createProgram } from "./Compiler";
 import NodeDetails from "./NodeDetails";
+import { useExpandStore } from "./state/ExpandStore";
+import { useSelectionStore } from "./state/SelectionStore";
 import { TreeNode } from "./Tree";
 import { getNodeForPosition, throttle } from "./Utils";
-import { createProgram } from "./Compiler";
-import { useSelectionStore } from "./state/SelectionStore";
 
 function Editor({
   code,
@@ -64,9 +65,13 @@ const SourceFile = React.memo(
     onNodeSelect: (node: ts.Node) => void;
   }) => {
     return (
-      <div>
+      <div
+        css={css`
+          position: relative;
+        `}
+      >
         <div>{sourceFile.fileName}</div>
-        <TreeNode node={sourceFile} onNodeSelect={onNodeSelect} />
+        <TreeNode node={sourceFile} path={[0]} onNodeSelect={onNodeSelect} />
       </div>
     );
   }
@@ -263,6 +268,7 @@ function App() {
   const [code, setCode] = React.useState(
     () => localStorage.getItem("code") ?? ""
   );
+  const collapseAll = useExpandStore((state) => state.collapseAll);
   const editorWidthRef = React.useRef(50);
   const editorDivRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<monacoEditor.editor.IStandaloneCodeEditor>();
@@ -298,6 +304,7 @@ function App() {
   // @ts-ignore
   window.$typeChecker = typeChecker;
   React.useEffect(() => {
+    collapseAll();
     localStorage.setItem("code", code);
   }, [code]);
   return (
