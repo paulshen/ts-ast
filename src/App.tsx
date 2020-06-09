@@ -92,9 +92,7 @@ const Output = React.memo(
     setCode: (code: string) => void;
   }) => {
     const selectNode = useSelectionStore((state) => state.setSelectedNode);
-    const hasSelectedNode = useSelectionStore(
-      (state) => state.selectedNode !== undefined
-    );
+    const selectedNode = useSelectionStore((state) => state.selectedNode);
     const deltaDecorationsRef = React.useRef<Array<string>>([]);
     const onNodeSelect = (node: ts.Node) => {
       // @ts-ignore
@@ -186,12 +184,13 @@ const Output = React.memo(
         >
           <SourceFile sourceFile={sourceFile} onNodeSelect={onNodeSelect} />
         </div>
-        {hasSelectedNode ? (
+        {selectedNode !== undefined ? (
           <NodeDetails
             typeChecker={typeChecker}
             onNodeSelect={onNodeSelect}
             sourceFile={sourceFile}
             setCode={setCode}
+            key={selectedNode.pos + selectedNode.kind}
           />
         ) : null}
       </div>

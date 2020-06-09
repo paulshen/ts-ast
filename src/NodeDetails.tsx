@@ -54,7 +54,7 @@ function NodeBreadcrumbs({
   return (
     <div
       css={css`
-        margin-bottom: var(--line-height);
+        margin-bottom: 8px;
       `}
     >
       {children}
@@ -289,6 +289,12 @@ function Tabs({
       >
         TypeChecker
       </button>
+      <button
+        onClick={() => onSelect(3)}
+        css={Styles.tabButton(selectedTab === 3)}
+      >
+        Text
+      </button>
     </div>
   );
 }
@@ -430,12 +436,6 @@ function DefaultBody({
           <div>{childNodes}</div>
         </div>
       ) : null}
-      <PropertyTable
-        data={[
-          ["Kind", node.kind],
-          ["Position", `${node.pos}-${node.end}`],
-        ]}
-      />
       {nonChildProperties.length > 0 ? (
         <div
           css={css`
@@ -455,6 +455,12 @@ function DefaultBody({
           Remove
         </button>
       </DetailBox>
+      <PropertyTable
+        data={[
+          ["Kind", node.kind],
+          ["Position", `${node.pos}-${node.end}`],
+        ]}
+      />
       <DetailBox label="Flags">
         <PropertyTable
           // @ts-ignore
@@ -503,6 +509,19 @@ function DefaultBody({
           ].filter((x) => x !== undefined)}
         />
       </DetailBox>
+    </div>
+  );
+}
+
+function NodeText({ node }: { node: ts.Node }) {
+  return (
+    <div
+      css={css`
+        white-space: pre;
+        overflow: auto;
+      `}
+    >
+      {node.getText()}
     </div>
   );
 }
@@ -557,6 +576,7 @@ export default function NodeDetails({
         <NodeBreadcrumbs node={node} onNodeSelect={onNodeSelect} />
         <div
           css={css`
+            font-size: 20px;
             font-weight: 600;
             margin-bottom: var(--line-height);
           `}
@@ -589,6 +609,8 @@ export default function NodeDetails({
             onNodeSelect={onNodeSelect}
             typeChecker={typeChecker}
           />
+        ) : tab === 3 ? (
+          <NodeText node={node} />
         ) : null}
       </div>
       <Tabs selectedTab={tab} onSelect={setTab} />
