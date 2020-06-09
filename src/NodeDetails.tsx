@@ -118,6 +118,7 @@ function PropertyTable({ data }: { data: Array<[string, React.ReactNode]> }) {
 const ChildRow = styled.div`
   display: flex;
   align-items: center;
+  min-height: 28px;
 `;
 const ChildProperty = styled.div`
   color: #808080;
@@ -138,7 +139,9 @@ const ChildLine = styled.div`
   min-width: 8px;
   margin-left: 4px;
 `;
-function ChildPropertyLine({ index }: { index: number }) {
+const NumChildContext = React.createContext(1);
+function ChildValueLine({ index }: { index: number }) {
+  const numChild = React.useContext(NumChildContext);
   return (
     <div
       css={css`
@@ -156,22 +159,20 @@ function ChildPropertyLine({ index }: { index: number }) {
           width: 16px;
         `}
       />
-      {index !== 0 ? (
-        <div
-          css={css`
-            position: absolute;
-            width: 1px;
-            height: 100%;
-            background-color: #e0e0e0;
-            left: 0;
-            top: -13px;
-          `}
-        />
-      ) : null}
+      <div
+        css={css`
+          position: absolute;
+          width: 1px;
+          background-color: #e0e0e0;
+          left: 0;
+          top: ${index === 0 ? "50%" : 0};
+          bottom: ${index === numChild - 1 ? "50%" : 0};
+        `}
+      />
     </div>
   );
 }
-function ChildValueLine({ index }: { index: number }) {
+function ChildSingleValueLine() {
   return (
     <div
       css={css`
@@ -189,18 +190,6 @@ function ChildValueLine({ index }: { index: number }) {
           width: 16px;
         `}
       />
-      {index !== 0 ? (
-        <div
-          css={css`
-            position: absolute;
-            width: 1px;
-            height: 100%;
-            background-color: #e0e0e0;
-            left: 0;
-            top: -13px;
-          `}
-        />
-      ) : null}
     </div>
   );
 }
@@ -342,36 +331,38 @@ function DefaultBody({
     } else if (Array.isArray(value)) {
       childNodes.push(
         <ChildRow key={key}>
-          <ChildPropertyLine index={childNodes.length} />
+          <ChildValueLine index={childNodes.length} />
           <ChildProperty>
             {key}
             <ChildLine />
           </ChildProperty>
           <div>
-            {value.map((childValue, i) => {
-              return (
-                <div
-                  css={css`
-                    display: flex;
-                  `}
-                  key={i}
-                >
-                  <ChildValueLine index={i} />
-                  <NodeButton
-                    node={childValue}
-                    onNodeSelect={onNodeSelect}
-                    buttonStyle
-                  />
-                </div>
-              );
-            })}
+            <NumChildContext.Provider value={value.length}>
+              {value.map((childValue, i) => {
+                return (
+                  <div
+                    css={css`
+                      display: flex;
+                    `}
+                    key={i}
+                  >
+                    <ChildValueLine index={i} />
+                    <NodeButton
+                      node={childValue}
+                      onNodeSelect={onNodeSelect}
+                      buttonStyle
+                    />
+                  </div>
+                );
+              })}
+            </NumChildContext.Provider>
             {value.length === 0 ? (
               <div
                 css={css`
                   display: flex;
                 `}
               >
-                <ChildValueLine index={0} />
+                <ChildSingleValueLine />
                 []
               </div>
             ) : null}
@@ -381,7 +372,7 @@ function DefaultBody({
     } else if (typeof value === "object") {
       childNodes.push(
         <ChildRow key={key}>
-          <ChildPropertyLine index={childNodes.length} />
+          <ChildValueLine index={childNodes.length} />
           <ChildProperty>
             {key}
             <ChildLine />
@@ -391,7 +382,7 @@ function DefaultBody({
               display: flex;
             `}
           >
-            <ChildValueLine index={0} />
+            <ChildSingleValueLine />
             <NodeButton node={value} onNodeSelect={onNodeSelect} buttonStyle />
           </div>
         </ChildRow>
@@ -433,7 +424,11 @@ function DefaultBody({
             </div>
             <ChildLine />
           </ChildProperty>
-          <div>{childNodes}</div>
+          <div>
+            <NumChildContext.Provider value={childNodes.length}>
+              {childNodes}
+            </NumChildContext.Provider>
+          </div>
         </div>
       ) : null}
       {nonChildProperties.length > 0 ? (
