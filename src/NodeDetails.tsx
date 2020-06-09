@@ -11,6 +11,11 @@ import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
 
 const Styles = {
+  breadcrumbButton: css`
+    &:hover {
+      text-decoration: underline;
+    }
+  `,
   tabButton: (isSelected: boolean) => css`
     background-color: transparent;
     border: 0;
@@ -36,12 +41,12 @@ function NodeBreadcrumbs({
       <NodeButton
         node={current}
         onNodeSelect={onNodeSelect}
-        buttonStyle
+        css={Styles.breadcrumbButton}
         key={i}
       />
     );
     if (current.kind !== ts.SyntaxKind.SourceFile) {
-      children.unshift(<span key={`${i}-`}>{" > "}</span>);
+      children.unshift(<span key={`${i}-`}>{" → "}</span>);
     }
     iter = iter.parent;
     i++;
