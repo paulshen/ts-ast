@@ -93,6 +93,10 @@ const Output = React.memo(
   }) => {
     const selectNode = useSelectionStore((state) => state.setSelectedNode);
     const selectedNode = useSelectionStore((state) => state.selectedNode);
+    const selectedNodeRef = React.useRef(selectedNode);
+    React.useEffect(() => {
+      selectedNodeRef.current = selectedNode;
+    });
     const deltaDecorationsRef = React.useRef<Array<string>>([]);
     const onNodeSelect = (node: ts.Node) => {
       // @ts-ignore
@@ -158,6 +162,65 @@ const Output = React.memo(
         return () => d.dispose();
       }
     });
+    React.useEffect(() => {
+      const onKeyDown = (e: KeyboardEvent) => {
+        const selectedNode = selectedNodeRef.current;
+        if (
+          document.activeElement === document.body &&
+          selectedNode !== undefined
+        ) {
+          switch (e.key) {
+            case "ArrowLeft":
+              if (selectedNode.parent !== undefined) {
+                onNodeSelect(selectedNode.parent);
+              }
+              break;
+            case "ArrowRight": {
+              let isFirstChild = true;
+              selectedNode.forEachChild((childNode) => {
+                if (isFirstChild) {
+                  onNodeSelect(childNode);
+                  isFirstChild = false;
+                }
+              });
+              break;
+            }
+            case "ArrowDown": {
+              const parentNode = selectedNode.parent;
+              if (parentNode !== undefined) {
+                let takeNextNode = false;
+                parentNode.forEachChild((childNode) => {
+                  if (takeNextNode) {
+                    onNodeSelect(childNode);
+                    takeNextNode = false;
+                  }
+                  if (childNode === selectedNode) {
+                    takeNextNode = true;
+                  }
+                });
+              }
+              break;
+            }
+            case "ArrowUp": {
+              const parentNode = selectedNode.parent;
+              if (parentNode !== undefined) {
+                let prevNode: ts.Node | undefined;
+                parentNode.forEachChild((childNode) => {
+                  if (childNode === selectedNode && prevNode !== undefined) {
+                    onNodeSelect(prevNode);
+                  } else {
+                    prevNode = childNode;
+                  }
+                });
+              }
+              break;
+            }
+          }
+        }
+      };
+      window.addEventListener("keydown", onKeyDown);
+      return () => window.removeEventListener("keydown", onKeyDown);
+    }, []);
 
     return (
       <div

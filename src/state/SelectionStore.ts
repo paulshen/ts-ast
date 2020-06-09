@@ -14,7 +14,7 @@ const [useStore] = create<{
   setSelectedNode: (node: ts.Node | undefined) => {
     if (node) {
       let selectedPath = [];
-      let iter = node;
+      let iter = node.parent;
       while (iter !== undefined) {
         selectedPath.unshift(iter);
         iter = iter.parent;
