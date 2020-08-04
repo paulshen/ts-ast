@@ -134,23 +134,21 @@ export function TreeNode({
           node={node}
           onNodeSelect={onNodeSelect}
           css={css`
-            color: ${isSelected
-              ? "var(--white)"
-              : isLandmarkNodeValue
-              ? "var(--dark)"
-              : "var(--gray)"};
-            font-weight: ${isLandmarkNodeValue ? 600 : 400};
+            color: ${isSelected ? "var(--white)" : "var(--gray)"};
           `}
         />
         {nodeNameText !== undefined ? (
           <span
             css={css(
               Styles.nodeName,
-              isSelected
-                ? css`
-                    color: var(--white);
-                  `
-                : undefined
+              css`
+                color: ${isSelected
+                  ? "var(--white)"
+                  : isLandmarkNodeValue
+                  ? "var(--dark)"
+                  : "var(--gray)"};
+                font-weight: ${isLandmarkNodeValue ? 600 : 400};
+              `
             )}
           >
             {nodeNameText}
