@@ -440,16 +440,6 @@ function DefaultBody({
           {nonChildProperties}
         </div>
       ) : null}
-      <DetailBox label="Manipulation">
-        <button
-          onClick={() => {
-            const newCode = removeNode(sourceFile, node);
-            setCode(newCode);
-          }}
-        >
-          Remove
-        </button>
-      </DetailBox>
       <PropertyTable
         data={[
           ["Kind", node.kind],
