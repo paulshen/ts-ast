@@ -227,11 +227,11 @@ const Output = React.memo(
         css={css`
           display: flex;
           flex-direction: column;
-          font-family: SF Mono;
+          font-family: SF Mono, Inconsolata, "Courier New", Courier, monospace;
           font-size: var(--font-size-default);
           height: 100%;
           button {
-            font-family: SF Mono;
+            font-family: SF Mono, Inconsolata, "Courier New", Courier, monospace;
             font-size: var(--font-size-default);
           }
         `}
@@ -326,9 +326,26 @@ function EditorResizer({
   );
 }
 
+const EXAMPLE_CODE = `class Person {
+  protected name: string;
+  protected constructor(theName: string) { this.name = theName; }
+}
+
+class Employee extends Person {
+  private department: string;
+
+  constructor(name: string, department: string) {
+      super(name);
+      this.department = department;
+  }
+}
+
+export const susie = new Employee("Susie", "Sales");
+`;
+
 function App() {
   const [code, setCode] = React.useState(
-    () => localStorage.getItem("code") ?? ""
+    () => localStorage.getItem("code") ?? EXAMPLE_CODE
   );
   const collapseAll = useExpandStore((state) => state.collapseAll);
   const editorWidthRef = React.useRef(50);
