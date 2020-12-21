@@ -1,6 +1,5 @@
 const {
   override,
-  addBabelPlugin,
   addBabelPreset,
   addWebpackPlugin,
 } = require("customize-cra");
@@ -12,6 +11,5 @@ module.exports = override(
       languages: ["typescript"],
     })
   ),
-  addBabelPlugin(require("babel-plugin-emotion")),
   addBabelPreset(require("@emotion/babel-preset-css-prop"))
 );
