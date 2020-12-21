@@ -417,6 +417,63 @@ function DefaultBody({
     }
   }
 
+  const flagsData = [
+    (() => {
+      const flags = getTsFlags(ts.NodeFlags, node.flags);
+      if (flags.length === 0) {
+        return;
+      }
+      return [
+        "Flags",
+        <div>
+          {flags.map((flag) => (
+            // @ts-ignore
+            <div key={flag}>{ts.NodeFlags[flag]}</div>
+          ))}
+        </div>,
+      ];
+    })(),
+    (() => {
+      if ((node as any).modifierFlagsCache === undefined) {
+        return;
+      }
+      const flags = getTsFlags(
+        ts.ModifierFlags,
+        (node as any).modifierFlagsCache
+      );
+      if (flags.length === 0) {
+        return;
+      }
+      return [
+        "Modifier Cache",
+        <div>
+          {flags.map((flag) => (
+            // @ts-ignore
+            <div key={flag}>{ts.NodeFlags[flag]}</div>
+          ))}
+        </div>,
+      ];
+    })(),
+    (() => {
+      if ((node as any).transformFlags === undefined) {
+        return;
+      }
+      const flags = getTsFlags(ts.TransformFlags, (node as any).transformFlags);
+      if (flags.length === 0) {
+        return;
+      }
+      return [
+        "Transform",
+        <div>
+          {flags.map((flag) => (
+            // @ts-ignore
+            <div key={flag}>{ts.NodeFlags[flag]}</div>
+          ))}
+        </div>,
+      ];
+    })(),
+  ].filter((x) => x !== undefined);
+
   return (
     <div>
       {childNodes.length > 0 ? (
@@ -459,54 +516,14 @@ function DefaultBody({
           ["Position", `${node.pos}-${node.end}`],
         ]}
       />
-      <DetailBox label="Flags">
-        <PropertyTable
-          // @ts-ignore
-          data={[
-            [
-              "Flags",
-
-              <div>
-                {getTsFlags(ts.NodeFlags, node.flags).map((flag) => (
-                  // @ts-ignore
-                  <div key={flag}>{ts.NodeFlags[flag]}</div>
-                ))}
-              </div>,
-            ],
-            (node as any).modifierFlagsCache !== undefined
-              ? ([
-                  "Modifier Cache",
-                  <div>
-                    {getTsFlags(
-                      ts.ModifierFlags,
-                      (node as any).modifierFlagsCache
-                    ).map((flag) => (
-                      // @ts-ignore
-                      <div key={flag}>{ts.ModifierFlags[flag]}</div>
-                    ))}
-                  </div>,
-                ] as [string, React.ReactNode])
-              : undefined,
-            (node as any).transformFlags !== undefined
-              ? ([
-                  "Transform",
-                  <div>
-                    {
-                      // @ts-ignore
-                      getTsFlags(
-                        ts.TransformFlags,
-                        (node as any).transformFlags
-                      ).map((flag) => (
-                        // @ts-ignore
-                        <div key={flag}>{ts.TransformFlags[flag]}</div>
-                      ))
-                    }
-                  </div>,
-                ] as [string, React.ReactNode])
-              : undefined,
-          ].filter((x) => x !== undefined)}
-        />
-      </DetailBox>
+      {flagsData.length > 0 ? (
+        <DetailBox label="Flags">
+          <PropertyTable
+            // @ts-ignore
+            data={flagsData}
+          />
+        </DetailBox>
+      ) : null}
     </div>
   );
 }
