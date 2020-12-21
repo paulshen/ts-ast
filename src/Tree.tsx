@@ -105,14 +105,7 @@ export function TreeNode({
       ) : isPathSelected ? (
         <Pointer>↓</Pointer>
       ) : null}
-      <div
-        css={css(
-          Styles.treeNodeName,
-          isHover ? Styles.treeNodeHover : undefined,
-          isSelected ? Styles.treeNodeSelected : undefined
-        )}
-        ref={anchorRef}
-      >
+      <div css={Styles.treeNodeName} ref={anchorRef}>
         {!ts.isSourceFile(node) && children.length > 0 ? (
           <button
             onClick={() => {
@@ -133,28 +126,36 @@ export function TreeNode({
         <NodeButton
           node={node}
           onNodeSelect={onNodeSelect}
-          css={css`
-            color: ${isSelected ? "var(--white)" : "var(--gray)"};
-          `}
+          css={css(
+            css`
+              color: ${isSelected ? "var(--white)" : "var(--gray)"};
+              display: block;
+              width: 100%;
+              text-align: left;
+            `,
+            isHover ? Styles.treeNodeHover : undefined,
+            isSelected ? Styles.treeNodeSelected : undefined
+          )}
+          customLabel={
+            <>
+              <span>{ts.SyntaxKind[node.kind]}</span>
+              {nodeNameText !== undefined ? (
+                <span
+                  css={css(
+                    Styles.nodeName,
+                    css`
+                      color: ${isSelected ? "var(--white)" : "var(--dark)"};
+                      font-weight: 600;
+                    `
+                  )}
+                >
+                  {nodeNameText}
+                </span>
+              ) : null}
+              {node.symbol !== undefined ? <SymbolMarker /> : null}
+            </>
+          }
         />
-        {nodeNameText !== undefined ? (
-          <span
-            css={css(
-              Styles.nodeName,
-              css`
-                color: ${isSelected
-                  ? "var(--white)"
-                  : isLandmarkNodeValue
-                  ? "var(--dark)"
-                  : "var(--gray)"};
-                font-weight: ${isLandmarkNodeValue ? 600 : 400};
-              `
-            )}
-          >
-            {nodeNameText}
-          </span>
-        ) : null}
-        {node.symbol !== undefined ? <SymbolMarker /> : null}
       </div>
       {(expanded || childIsHover || isPathSelected) && children.length > 0 ? (
         <div

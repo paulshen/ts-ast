@@ -7,8 +7,13 @@ const Styles = {
   button: css`
     padding: 3px 6px;
     margin: 2px 0;
-    border: 1px solid var(--gray);
+    border: 1px solid #ae6ab4;
     border-radius: 4px;
+    color: #ae6ab4;
+    :hover {
+      background-color: #ae6ab4;
+      color: var(--white);
+    }
   `,
 };
 
@@ -22,7 +27,7 @@ export default function NodeButton({
   node: ts.Node;
   onNodeSelect: (node: ts.Node) => void;
   buttonStyle?: boolean;
-  customLabel?: string;
+  customLabel?: React.ReactNode;
   className?: string;
 }) {
   const setHoverNode = useSelectionStore((state) => state.setHoverNode);

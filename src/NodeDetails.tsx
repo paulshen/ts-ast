@@ -123,13 +123,20 @@ const ChildProperty = styled.div`
   color: #808080;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   min-width: 128px;
 `;
 const ChildNodeName = css`
   padding: 3px 6px;
   margin: 2px 0;
-  border: 1px solid var(--gray);
+  border: 1px solid #ae6ab4;
+  color: #ae6ab4;
   border-radius: 4px;
+  cursor: pointer;
+  :hover {
+    background-color: #ae6ab4;
+    color: var(--white);
+  }
 `;
 const ChildLine = styled.div`
   background-color: #e0e0e0;
@@ -449,7 +456,7 @@ function DefaultBody({
         <div>
           {flags.map((flag) => (
             // @ts-ignore
-            <div key={flag}>{ts.NodeFlags[flag]}</div>
+            <div key={flag}>{ts.ModifierFlags[flag]}</div>
           ))}
         </div>,
       ];
@@ -467,7 +474,7 @@ function DefaultBody({
         <div>
           {flags.map((flag) => (
             // @ts-ignore
-            <div key={flag}>{ts.NodeFlags[flag]}</div>
+            <div key={flag}>{ts.TransformFlags[flag]}</div>
           ))}
         </div>,
       ];
@@ -484,14 +491,7 @@ function DefaultBody({
           `}
         >
           <ChildProperty>
-            <div
-              css={css`
-                ${ChildNodeName}
-                color: var(--dark);
-              `}
-            >
-              {ts.SyntaxKind[node.kind]}
-            </div>
+            <div css={ChildNodeName}>{ts.SyntaxKind[node.kind]}</div>
             <ChildLine />
           </ChildProperty>
           <div>
