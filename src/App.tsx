@@ -286,6 +286,7 @@ function EditorResizer({
   const onMouseDown = (e: React.MouseEvent) => {
     const startX = e.pageX;
     const startWidthPx = (editorWidthRef.current! / 100) * window.innerWidth;
+    document.body.style.userSelect = "none";
     onMouseMoveRef.current = (e: MouseEvent) => {
       const deltaX = e.pageX - startX;
       const widthPx = startWidthPx + deltaX;
@@ -297,6 +298,7 @@ function EditorResizer({
       window.removeEventListener("mouseup", onMouseUpRef.current!);
       onMouseMoveRef.current = undefined;
       onMouseUpRef.current = undefined;
+      document.body.style.userSelect = "auto";
     };
     window.addEventListener("mousemove", onMouseMoveRef.current);
     window.addEventListener("mouseup", onMouseUpRef.current);
@@ -355,7 +357,7 @@ function App() {
     () =>
       throttle(() => {
         editorRef.current?.layout();
-      }, 100),
+      }, 50),
     []
   );
   const setEditorWidth = (editorWidth: number) => {

@@ -2,7 +2,6 @@ import { css } from "@emotion/core";
 import styled from "@emotion/styled";
 import * as React from "react";
 import * as ts from "typescript";
-import { removeNode } from "./manipulation/NodeManipulator";
 import NodeRaw from "./NodeRaw";
 import NodeTypeChecker from "./NodeTypeChecker";
 import { useSelectionStore } from "./state/SelectionStore";
@@ -206,6 +205,7 @@ function Resizer({
   const onMouseDown = (e: React.MouseEvent) => {
     const startY = e.pageY;
     const startHeightPx = (heightRef.current! / 100) * window.innerHeight;
+    document.body.style.userSelect = "none";
     onMouseMoveRef.current = (e: MouseEvent) => {
       const deltaY = startY - e.pageY;
       const heightPx = startHeightPx + deltaY;
@@ -217,6 +217,7 @@ function Resizer({
       window.removeEventListener("mouseup", onMouseUpRef.current!);
       onMouseMoveRef.current = undefined;
       onMouseUpRef.current = undefined;
+      document.body.style.userSelect = "auto";
     };
     window.addEventListener("mousemove", onMouseMoveRef.current);
     window.addEventListener("mouseup", onMouseUpRef.current);
@@ -235,14 +236,26 @@ function Resizer({
     <div
       css={css`
         position: absolute;
-        top: 0;
+        top: -5px;
         left: 0;
         right: 0;
         height: 8px;
         cursor: ns-resize;
+        --resizer-color: var(--very-light);
+        :hover {
+          --resizer-color: var(--light);
+        }
       `}
       onMouseDown={onMouseDown}
-    ></div>
+    >
+      <div
+        css={css`
+          height: 2px;
+          background-color: var(--resizer-color);
+          margin-top: 4px;
+        `}
+      />
+    </div>
   );
 }
 
@@ -542,7 +555,6 @@ export default function NodeDetails({
   return (
     <div
       css={css`
-        border-top: 1px solid #e0e0e0;
         display: flex;
         flex-direction: column;
         height: 50%;
