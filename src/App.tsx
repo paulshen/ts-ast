@@ -70,7 +70,6 @@ const SourceFile = React.memo(
           position: relative;
         `}
       >
-        <div>{sourceFile.fileName}</div>
         <TreeNode node={sourceFile} path={[0]} onNodeSelect={onNodeSelect} />
       </div>
     );
