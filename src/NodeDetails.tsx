@@ -10,11 +10,6 @@ import NodeButton from "./ui/NodeButton";
 import { getNodeName, getTsFlags } from "./Utils";
 
 const Styles = {
-  breadcrumbButton: css`
-    &:hover {
-      text-decoration: underline;
-    }
-  `,
   tabButton: (isSelected: boolean) => css`
     background-color: transparent;
     border: 0;
@@ -40,7 +35,7 @@ function NodeBreadcrumbs({
       <NodeButton
         node={current}
         onNodeSelect={onNodeSelect}
-        css={Styles.breadcrumbButton}
+        buttonStyle={true}
         key={i}
       />
     );
